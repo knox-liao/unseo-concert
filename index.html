@@ -21,7 +21,8 @@
         body::-webkit-scrollbar { display: none; }
         body { -ms-overflow-style: none; scrollbar-width: none; }
 
-        [contenteditable="true"]:focus { outline: 2px dashed #0284c7; background-color: rgba(2, 132, 199, 0.1); padding: 2px; border-radius: 4px; }
+        /* 預設未解鎖時，不顯示編輯樣式 */
+        .is-editable [contenteditable="true"]:focus { outline: 2px dashed #0284c7; background-color: rgba(2, 132, 199, 0.1); padding: 2px; border-radius: 4px; }
         
         @keyframes float {
             0% { transform: translateY(0px) rotate(0deg); }
@@ -32,7 +33,7 @@
         .jellyfish-float-delayed { animation: float 5s ease-in-out infinite 2s; }
     </style>
 </head>
-<body class="pb-28 relative">
+<body id="app-body" class="pb-28 relative">
 
     <!-- 背景裝飾：6隻漂浮水母與音樂音符 -->
     <div class="fixed inset-0 pointer-events-none z-0 overflow-hidden opacity-40">
@@ -56,14 +57,20 @@
                     <span>🐳</span> NMIXX和NSER安可場 <span class="text-xs">🎵</span>
                 </h1>
                 
-                <div class="relative">
-                    <button onclick="toggleMenu()" class="bg-white/20 hover:bg-white/30 px-2.5 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1 border border-white/20">
-                        ⚙️ 設定
-                    </button>
-                    <div id="settings-menu" class="hidden absolute right-0 mt-2 w-36 bg-slate-900 text-slate-200 rounded-xl shadow-2xl py-1 z-50 border border-slate-700">
-                        <button onclick="resetData()" class="w-full text-left px-4 py-2 text-xs text-rose-400 hover:bg-rose-950/50 font-bold transition flex items-center gap-1.5">
-                            🔄 重置資料
+                <div class="flex items-center gap-2">
+                    <span id="lock-badge" class="text-[10px] bg-rose-500/80 text-white px-2 py-0.5 rounded-full font-bold">🔒 已鎖定編輯</span>
+                    <div class="relative">
+                        <button onclick="toggleMenu()" class="bg-white/20 hover:bg-white/30 px-2.5 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1 border border-white/20">
+                            ⚙️ 設定
                         </button>
+                        <div id="settings-menu" class="hidden absolute right-0 mt-2 w-44 bg-slate-900 text-slate-200 rounded-xl shadow-2xl py-1 z-50 border border-slate-700">
+                            <button onclick="toggleEditMode()" id="lock-menu-btn" class="w-full text-left px-4 py-2 text-xs text-cyan-300 hover:bg-slate-800 font-bold transition flex items-center gap-1.5 border-b border-slate-800">
+                                🔓 解除編輯鎖定
+                            </button>
+                            <button onclick="resetData()" class="w-full text-left px-4 py-2 text-xs text-rose-400 hover:bg-rose-950/50 font-bold transition flex items-center gap-1.5">
+                                🔄 重置所有資料
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -73,11 +80,11 @@
             <div class="bg-white/15 backdrop-blur-md rounded-xl p-3 text-xs space-y-1.5 border border-white/30 shadow-inner">
                 <div class="flex justify-between items-center">
                     <span>🛫 去程 (11/26)：RMQ ➔ ICN</span>
-                    <span class="font-bold text-cyan-100" contenteditable="true" onblur="saveData()">18:30 - 22:15 <span class="text-[10px] text-pink-200">(南韓當地)</span></span>
+                    <span class="font-bold text-cyan-100" contenteditable="false" id="flight-out" onblur="saveData()">18:30 - 22:15 <span class="text-[10px] text-pink-200">(南韓當地)</span></span>
                 </div>
                 <div class="flex justify-between items-center">
                     <span>🛬 回程 (11/30)：ICN ➔ RMQ</span>
-                    <span class="font-bold text-cyan-100" contenteditable="true" onblur="saveData()">15:35 - 17:30 <span class="text-[10px] text-pink-200">(台中當地)</span></span>
+                    <span class="font-bold text-cyan-100" contenteditable="false" id="flight-in" onblur="saveData()">15:35 - 17:30 <span class="text-[10px] text-pink-200">(台中當地)</span></span>
                 </div>
                 
                 <!-- 雙時區並列：顯示到分鐘 -->
@@ -121,7 +128,8 @@
         const defaultData = {
             activeTab: 'itinerary',
             currentDay: 26,
-            openAccordions: { 26: true, 27: true, 28: true, 29: true, 30: true }, // 控制準備清單收合狀態
+            isEditable: false,
+            openAccordions: { 26: true, 27: true, 28: true, 29: true, 30: true },
             days: {
                 26: {
                     hotel: "機場",
@@ -170,7 +178,6 @@
                     ]
                 }
             },
-            // 詳細分類且可展開的準備清單
             checklistsByDay: {
                 26: {
                     title: "✈️ 11/26 出發準備與證件行李清單",
@@ -333,15 +340,34 @@
             }
         };
 
-        let appData = JSON.parse(localStorage.getItem('nmixx_ice_trip_data_v5')) || defaultData;
+        // 載入 localStorage (v6版本，若有舊版自動相容保留)
+        let savedRawData = localStorage.getItem('nmixx_ice_trip_data_v6');
+        let appData = defaultData;
+        if (savedRawData) {
+            try {
+                let parsed = JSON.parse(savedRawData);
+                // 合併預設值以防結構更新漏掉欄位
+                appData = Object.assign({}, defaultData, parsed);
+                if (!appData.hasOwnProperty('isEditable')) appData.isEditable = false;
+            } catch(e) {
+                appData = defaultData;
+            }
+        }
 
         function saveData() {
-            localStorage.setItem('nmixx_ice_trip_data_v5', JSON.stringify(appData));
+            localStorage.setItem('nmixx_ice_trip_data_v6', JSON.stringify(appData));
         }
 
         function toggleMenu() {
             const menu = document.getElementById('settings-menu');
             menu.classList.toggle('hidden');
+        }
+
+        function toggleEditMode() {
+            appData.isEditable = !appData.isEditable;
+            saveData();
+            render();
+            toggleMenu();
         }
 
         window.onclick = function(event) {
@@ -377,6 +403,10 @@
         }
 
         function addItem(day) {
+            if (!appData.isEditable) {
+                alert("目前為編輯鎖定狀態，請先至右上角「設定」解除鎖定後才能新增行程！");
+                return;
+            }
             const time = prompt("請輸入時間 (例如 13:00 或 13:00 - 14:30)：", "12:00");
             if (!time) return;
             const title = prompt("請輸入新行程名稱：");
@@ -402,6 +432,10 @@
         }
 
         function deleteItem(day, index) {
+            if (!appData.isEditable) {
+                alert("請先至右上角「設定」解除編輯鎖定後才能刪除行程！");
+                return;
+            }
             if (confirm("確定要刪除這個自訂行程嗎？")) {
                 appData.days[day].items.splice(index, 1);
                 saveData();
@@ -423,14 +457,33 @@
 
         function resetData() {
             if (confirm("確定要重置所有修改，恢復預設值嗎？")) {
-                localStorage.removeItem('nmixx_ice_trip_data_v5');
+                localStorage.removeItem('nmixx_ice_trip_data_v6');
                 appData = JSON.parse(JSON.stringify(defaultData));
                 render();
                 alert("已恢復預設資料！");
+                toggleMenu();
             }
         }
 
         function render() {
+            const bodyEl = document.getElementById('app-body');
+            const lockBadge = document.getElementById('lock-badge');
+            const lockMenuBtn = document.getElementById('lock-menu-btn');
+
+            if (appData.isEditable) {
+                bodyEl.classList.add('is-editable');
+                lockBadge.className = "text-[10px] bg-emerald-600 text-white px-2 py-0.5 rounded-full font-bold";
+                lockBadge.innerText = "🔓 編輯解鎖中";
+                lockMenuBtn.innerText = "🔒 鎖定編輯防誤觸";
+                lockMenuBtn.className = "w-full text-left px-4 py-2 text-xs text-rose-300 hover:bg-slate-800 font-bold transition flex items-center gap-1.5 border-b border-slate-800";
+            } else {
+                bodyEl.classList.remove('is-editable');
+                lockBadge.className = "text-[10px] bg-rose-500/80 text-white px-2 py-0.5 rounded-full font-bold";
+                lockBadge.innerText = "🔒 已鎖定編輯";
+                lockMenuBtn.innerText = "🔓 解除編輯鎖定";
+                lockMenuBtn.className = "w-full text-left px-4 py-2 text-xs text-cyan-300 hover:bg-slate-800 font-bold transition flex items-center gap-1.5 border-b border-slate-800";
+            }
+
             document.querySelectorAll('.day-btn').forEach(btn => {
                 btn.className = "day-btn px-4 py-1.5 rounded-full text-xs font-bold bg-white text-cyan-900 border border-cyan-200 hover:bg-cyan-50 transition shadow-sm";
             });
@@ -451,7 +504,7 @@
                 
                 let html = `
                     <div class="bg-white/80 backdrop-blur-md border border-cyan-200 rounded-2xl p-3 text-xs text-slate-800 font-medium flex justify-between items-center shadow-md">
-                        <span>🏨 <strong>今日住宿：</strong> <span class="text-cyan-700 font-bold" contenteditable="true" onblur="appData.days[${appData.currentDay}].hotel=this.innerText; saveData();">${dayData.hotel}</span></span>
+                        <span>🏨 <strong>今日住宿：</strong> <span class="text-cyan-700 font-bold" contenteditable="${appData.isEditable}" onblur="appData.days[${appData.currentDay}].hotel=this.innerText; saveData();">${dayData.hotel}</span></span>
                         <span id="inline-countdown" class="bg-cyan-100 text-cyan-800 border border-cyan-300 px-2.5 py-1 rounded-full font-bold text-[11px]">計算中...</span>
                     </div>
                 `;
@@ -466,7 +519,7 @@
 
                 dayData.items.forEach((item, index) => {
                     let deleteBtnHtml = '';
-                    if (!item.isDefault) {
+                    if (!item.isDefault && appData.isEditable) {
                         deleteBtnHtml = `<button onclick="deleteItem(${appData.currentDay}, ${index})" class="absolute top-2 right-2 text-slate-400 hover:text-rose-500 text-xs px-1.5 py-0.5 rounded transition">❌ 刪除</button>`;
                     }
 
@@ -474,18 +527,18 @@
                         <div class="bg-white/85 backdrop-blur-md rounded-2xl shadow-md p-4 border-l-4 ${item.color} border-slate-100 relative group">
                             ${deleteBtnHtml}
                             <div class="flex justify-between items-start pr-8">
-                                <span class="text-xs font-bold text-cyan-800 bg-cyan-50 border border-cyan-200 px-2 py-0.5 rounded" contenteditable="true" onblur="appData.days[${appData.currentDay}].items[${index}].time=this.innerText; saveData();">${item.time}</span>
-                                <a href="https://maps.google.com/?q=${item.map}" target="_blank" class="text-xs text-sky-600 hover:underline">📍 導航</a>
+                                <span class="text-xs font-bold text-cyan-800 bg-cyan-50 border border-cyan-200 px-2 py-0.5 rounded" contenteditable="${appData.isEditable}" onblur="appData.days[${appData.currentDay}].items[${index}].time=this.innerText; saveData();">${item.time}</span>
+                                <a href="https://maps.google.com/?q=${item.map}" target="_blank" rel="noopener noreferrer" class="text-xs text-sky-600 hover:underline">📍 導航</a>
                             </div>
-                            <h3 class="text-base font-bold mt-1.5 text-slate-800" contenteditable="true" onblur="appData.days[${appData.currentDay}].items[${index}].title=this.innerText; saveData();">${item.title}</h3>
-                            <p class="text-xs text-slate-600 mt-1" contenteditable="true" onblur="appData.days[${appData.currentDay}].items[${index}].desc=this.innerText; saveData();">${item.desc}</p>
+                            <h3 class="text-base font-bold mt-1.5 text-slate-800" contenteditable="${appData.isEditable}" onblur="appData.days[${appData.currentDay}].items[${index}].title=this.innerText; saveData();">${item.title}</h3>
+                            <p class="text-xs text-slate-600 mt-1" contenteditable="${appData.isEditable}" onblur="appData.days[${appData.currentDay}].items[${index}].desc=this.innerText; saveData();">${item.desc}</p>
                         </div>
                     `;
                 });
 
                 html += `
                     <button onclick="addItem(${appData.currentDay})" class="w-full py-3 border-2 border-dashed border-cyan-300 text-cyan-700 rounded-2xl font-bold text-xs hover:bg-white/50 transition flex items-center justify-center gap-1 mt-3 shadow-sm">
-                        ➕ 在 11/${appData.currentDay} 新增行程
+                        ➕ 在 11/${appData.currentDay} 新增行程 ${appData.isEditable ? '' : '(需解鎖)'}
                     </button>
                 `;
 
@@ -504,7 +557,7 @@
 
                 dayDataObj.categories.forEach((cat, catIdx) => {
                     const key = `${appData.currentDay}_${catIdx}`;
-                    const isOpen = appData.openAccordions && appData.openAccordions[key] === false ? false : true; // 預設展開
+                    const isOpen = appData.openAccordions && appData.openAccordions[key] === false ? false : true;
 
                     html += `
                         <div class="bg-white/85 backdrop-blur-md rounded-2xl shadow-md border border-cyan-100 overflow-hidden">
@@ -563,7 +616,6 @@
         function updateTimeAndCountdowns() {
             const now = new Date();
             
-            // 顯示到分鐘
             const twHours = String(now.getHours()).padStart(2, '0');
             const twMinutes = String(now.getMinutes()).padStart(2, '0');
             document.getElementById('taiwan-time').innerText = `${twHours}:${twMinutes}`;
