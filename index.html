@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>🐳 NMIXX和NSER安可場互動行程 (11/26 - 11/30)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body { 
+            font-family: 'Noto Sans TC', sans-serif; 
+            background: 
+                radial-gradient(circle at 50% 20%, #FFFFFF 0%, rgba(255, 255, 255, 0.6) 35%, transparent 70%),
+                linear-gradient(135deg, #DDF7FC 0%, #B8EDF7 30%, #B8EDE5 70%, #91DCEB 100%);
+            color: #0f2c3b;
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+            overflow-y: scroll;
+        }
+        body::-webkit-scrollbar { display: none; }
+        body { -ms-overflow-style: none; scrollbar-width: none; }
+
+        [contenteditable="true"]:focus { outline: 2px dashed #0284c7; background-color: rgba(2, 132, 199, 0.1); padding: 2px; border-radius: 4px; }
+        
+        @keyframes float {
+            0% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-10px) rotate(3deg); }
+            100% { transform: translateY(0px) rotate(0deg); }
+        }
+        .jellyfish-float { animation: float 4s ease-in-out infinite; }
+        .jellyfish-float-delayed { animation: float 5s ease-in-out infinite 2s; }
+    </style>
+</head>
+<body class="pb-28 relative">
+
+    <!-- 背景裝飾：6隻漂浮水母與音樂音符 -->
+    <div class="fixed inset-0 pointer-events-none z-0 overflow-hidden opacity-40">
+        <div class="absolute top-28 left-4 text-2xl jellyfish-float">🪼</div>
+        <div class="absolute top-52 right-6 text-3xl jellyfish-float-delayed">🪼</div>
+        <div class="absolute top-96 left-10 text-xl jellyfish-float">🪼</div>
+        <div class="absolute top-[480px] right-12 text-2xl jellyfish-float-delayed">🪼</div>
+        <div class="absolute bottom-40 left-6 text-3xl jellyfish-float">🪼</div>
+        <div class="absolute bottom-20 right-10 text-xl jellyfish-float-delayed">🪼</div>
+        
+        <div class="absolute top-36 right-1/4 text-sm text-cyan-600 animate-pulse">🎵</div>
+        <div class="absolute top-80 left-1/4 text-base text-teal-600 animate-pulse">🎶</div>
+        <div class="absolute bottom-60 right-1/3 text-sm text-sky-600 animate-pulse">🎵</div>
+    </div>
+
+    <!-- 頂部固定區域 -->
+    <div class="sticky top-0 z-50 bg-gradient-to-r from-sky-900/95 via-cyan-900/95 to-teal-900/95 backdrop-blur-md text-white shadow-xl border-b border-cyan-300/30" style="padding-top: env(safe-area-inset-top);">
+        <div class="max-w-md mx-auto p-4 relative z-10">
+            <div class="flex justify-between items-center mb-2">
+                <h1 class="text-base font-bold flex items-center gap-1.5 text-cyan-200">
+                    <span>🐳</span> NMIXX和NSER安可場 <span class="text-xs">🎵</span>
+                </h1>
+                
+                <div class="relative">
+                    <button onclick="toggleMenu()" class="bg-white/20 hover:bg-white/30 px-2.5 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1 border border-white/20">
+                        ⚙️ 設定
+                    </button>
+                    <div id="settings-menu" class="hidden absolute right-0 mt-2 w-36 bg-slate-900 text-slate-200 rounded-xl shadow-2xl py-1 z-50 border border-slate-700">
+                        <button onclick="resetData()" class="w-full text-left px-4 py-2 text-xs text-rose-400 hover:bg-rose-950/50 font-bold transition flex items-center gap-1.5">
+                            🔄 重置資料
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="countdown" class="text-xs bg-gradient-to-r from-cyan-500 to-teal-500 text-white font-bold px-3 py-1 rounded-full shadow-md animate-pulse inline-block mb-2">計算倒數中...</div>
+
+            <div class="bg-white/15 backdrop-blur-md rounded-xl p-3 text-xs space-y-1.5 border border-white/30 shadow-inner">
+                <div class="flex justify-between items-center">
+                    <span>🛫 去程 (11/26)：RMQ ➔ ICN</span>
+                    <span class="font-bold text-cyan-100" contenteditable="true" onblur="saveData()">18:30 - 22:15 <span class="text-[10px] text-pink-200">(南韓當地)</span></span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span>🛬 回程 (11/30)：ICN ➔ RMQ</span>
+                    <span class="font-bold text-cyan-100" contenteditable="true" onblur="saveData()">15:35 - 17:30 <span class="text-[10px] text-pink-200">(台中當地)</span></span>
+                </div>
+                
+                <!-- 雙時區並列：顯示到分鐘 -->
+                <div class="grid grid-cols-2 gap-2 pt-1.5 border-t border-white/20 text-center">
+                    <div class="bg-black/20 rounded-lg p-1.5 border border-white/10">
+                        <span class="text-[10px] text-cyan-200 block">🇹🇼 台灣時間</span>
+                        <span id="taiwan-time" class="font-bold text-white tracking-wider">--:--</span>
+                    </div>
+                    <div class="bg-black/20 rounded-lg p-1.5 border border-white/10">
+                        <span class="text-[10px] text-pink-200 block">🇰🇷 南韓時間</span>
+                        <span id="korea-time" class="font-bold text-white tracking-wider">--:--</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 永遠釘選在頂部的日期選單 -->
+        <nav id="day-nav-bar" class="bg-white/90 backdrop-blur-md px-4 py-2.5 flex gap-2 overflow-x-auto whitespace-nowrap border-t border-cyan-200/40 max-w-md mx-auto">
+            <button onclick="switchDay(26)" id="btn-day26" class="day-btn px-4 py-1.5 rounded-full text-xs font-bold bg-cyan-600 text-white shadow transition">11/26</button>
+            <button onclick="switchDay(27)" id="btn-day27" class="day-btn px-4 py-1.5 rounded-full text-xs font-bold bg-white text-cyan-900 border border-cyan-200 hover:bg-cyan-50 transition">11/27</button>
+            <button onclick="switchDay(28)" id="btn-day28" class="day-btn px-4 py-1.5 rounded-full text-xs font-bold bg-white text-cyan-900 border border-cyan-200 hover:bg-cyan-50 transition">11/28</button>
+            <button onclick="switchDay(29)" id="btn-day29" class="day-btn px-4 py-1.5 rounded-full text-xs font-bold bg-white text-cyan-900 border border-cyan-200 hover:bg-cyan-50 transition">11/29</button>
+            <button onclick="switchDay(30)" id="btn-day30" class="day-btn px-4 py-1.5 rounded-full text-xs font-bold bg-white text-cyan-900 border border-cyan-200 hover:bg-cyan-50 transition">11/30</button>
+        </nav>
+    </div>
+
+    <!-- 內容主區塊 -->
+    <main class="max-w-md mx-auto px-4 mt-4 space-y-4 relative z-10">
+        <div id="content-container"></div>
+    </main>
+
+    <!-- 底部導覽列 -->
+    <nav class="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md border-t border-cyan-100 max-w-md mx-auto flex justify-around py-3 text-xs text-slate-600 shadow-2xl z-50" style="padding-bottom: calc(0.75rem + env(safe-area-inset-bottom));">
+        <button onclick="switchTab('itinerary')" id="nav-itinerary" class="flex flex-col items-center text-cyan-700 font-bold">📅 行程</button>
+        <button onclick="switchTab('checklist')" id="nav-checklist" class="flex flex-col items-center hover:text-cyan-700">🎒 準備清單</button>
+        <button onclick="switchTab('shopping')" id="nav-shopping" class="flex flex-col items-center hover:text-cyan-700">🛒 購物清單</button>
+    </nav>
+
+    <!-- 互動 JavaScript 邏輯 -->
+    <script>
+        const defaultData = {
+            activeTab: 'itinerary',
+            currentDay: 26,
+            openAccordions: { 26: true, 27: true, 28: true, 29: true, 30: true }, // 控制準備清單收合狀態
+            days: {
+                26: {
+                    hotel: "機場",
+                    targetTimeStr: "2026-11-26T13:00:00+08:00",
+                    items: [
+                        { id: "def_1", time: "13:00 - 15:30", title: "行李最後確認與打包", desc: "檢查護照、網卡、門票與保暖衣物是否備齊。", map: "台中", color: "border-cyan-500", isDefault: true },
+                        { id: "def_2", time: "15:30", title: "出發前往台中清泉崗機場", desc: "搭車前往機場，準備辦理登機手續。", map: "台中清泉崗機場", color: "border-cyan-500", isDefault: true },
+                        { id: "def_3", time: "18:30 - 22:15", title: "搭機飛往韓國仁川機場 (RMQ ➔ ICN)", desc: "抵達後通關、領取行李，今晚入住機場周邊休息 (南韓當地時間)。", map: "仁川國際機場", color: "border-cyan-500", isDefault: true }
+                    ]
+                },
+                27: {
+                    hotel: "Unseo Sky Top (Check-in)",
+                    isConcertDay: true,
+                    targetTimeStr: "2026-11-27T19:00:00+09:00",
+                    items: [
+                        { id: "def_4", time: "10:00 - 14:30", title: "首爾市區 / 商圈採買", desc: "採買應援小物、禦寒衣物（11月底韓國非常冷！）。", map: "弘大商圈", color: "border-sky-500", isDefault: true },
+                        { id: "def_5", time: "15:00", title: "飯店 Check-in 入住休息", desc: "前往 Unseo Sky Top 辦理入住放行李。", map: "Unseo Sky Top", color: "border-cyan-500", isDefault: true },
+                        { id: "def_6", time: "19:00 開演", title: "🎤 NMIXX 安可場 Day 1 正式開始！ 🎶", desc: "第一場次狂歡！請提早至場館驗票進場。", map: "INSPIRE Arena", color: "border-pink-500", isDefault: true }
+                    ]
+                },
+                28: {
+                    hotel: "Unseo Sky Top",
+                    isConcertDay: true,
+                    targetTimeStr: "2026-11-28T17:00:00+09:00",
+                    items: [
+                        { id: "def_7", time: "15:00", title: "飯店休息 / 整理裝備", desc: "返回 Unseo Sky Top 稍微休息，準備出發看演唱會。", map: "Unseo Sky Top", color: "border-cyan-500", isDefault: true },
+                        { id: "def_8", time: "17:00 開演", title: "🎤 NMIXX 安可場 Day 2 正式開始！ 🎶", desc: "第二場次開唱，盡情享受精彩演出！", map: "INSPIRE Arena", color: "border-pink-500", isDefault: true }
+                    ]
+                },
+                29: {
+                    hotel: "Unseo Sky Top",
+                    isConcertDay: true,
+                    targetTimeStr: "2026-11-29T16:00:00+09:00",
+                    items: [
+                        { id: "def_9", time: "15:00", title: "飯店休息 / 調整狀態", desc: "返回 Unseo Sky Top 稍作休息。", map: "Unseo Sky Top", color: "border-cyan-500", isDefault: true },
+                        { id: "def_10", time: "16:00 開演", title: "🎤 NMIXX 安可場 Day 3 (最終場) 開演！ 🎶", desc: "完美收官場次，嗨翻全場不留遺憾！", map: "INSPIRE Arena", color: "border-pink-500", isDefault: true }
+                    ]
+                },
+                30: {
+                    hotel: "Unseo Sky Top",
+                    targetTimeStr: "2026-11-30T12:00:00+09:00",
+                    items: [
+                        { id: "def_11", time: "11:00", title: "飯店 Check-out 退房", desc: "行李寄放或直接攜帶，準備前往機場。", map: "Unseo Sky Top", color: "border-teal-500", isDefault: true },
+                        { id: "def_12", time: "12:30", title: "前往仁川機場 / 免稅店最後衝刺", desc: "搭乘交通工具至機場，採買伴手禮。", map: "仁川國際機場", color: "border-teal-500", isDefault: true },
+                        { id: "def_13", time: "15:35 - 17:30", title: "搭機返回台中 (ICN ➔ RMQ)", desc: "平安賦歸，結束完美的追星之旅 (台中當地時間)。", map: "台中清泉崗機場", color: "border-teal-500", isDefault: true }
+                    ]
+                }
+            },
+            // 詳細分類且可展開的準備清單
+            checklistsByDay: {
+                26: {
+                    title: "✈️ 11/26 出發準備與證件行李清單",
+                    categories: [
+                        {
+                            name: "🛂 證件與通訊準備",
+                            items: [
+                                { text: "護照正本 (效期需滿 6 個月以上)", checked: false },
+                                { text: "K-ETA 電子旅行許可 (確認列印或截圖)", checked: false },
+                                { text: "網卡 / eSIM 購買與開通確認", checked: false },
+                                { text: "機票電子收據 / 飯店預訂憑證", checked: false }
+                            ]
+                        },
+                        {
+                            name: "🧳 行李與電子設備",
+                            items: [
+                                { text: "T-money 交通卡 (內含充值金) / 信用卡", checked: false },
+                                { text: "少量韓元現金 (應急使用)", checked: false },
+                                { text: "萬國轉接頭 (韓國圓形插頭)", checked: false },
+                                { text: "大容量行動電源 (隨身攜帶，不可託運)", checked: false },
+                                { text: "充電線、手機架、耳機", checked: false }
+                            ]
+                        },
+                        {
+                            name: "🧥 保暖衣物與藥品",
+                            items: [
+                                { text: "發熱衣、厚羽絨外套 (11月韓國極冷)", checked: false },
+                                { text: "毛帽、圍巾、觸控手套、厚襪子", checked: false },
+                                { text: "個人常備藥品 (感冒藥、胃藥、止痛藥、貼布)", checked: false }
+                            ]
+                        }
+                    ]
+                },
+                27: {
+                    title: "🎤 11/27 演唱會 Day 1 出門前確認清單",
+                    categories: [
+                        {
+                            name: "🎫 門票與身分驗證",
+                            items: [
+                                { text: "演唱會實體門票 / QR Code 截圖 (離線防斷網)", checked: false },
+                                { text: "購票證明與護照正本 (現場實名認證必備)", checked: false }
+                            ]
+                        },
+                        {
+                            name: "💡 應援裝備",
+                            items: [
+                                { text: "官方手燈 + 備用電池 (已事先測試發光正常)", checked: false },
+                                { text: "應援手幅、小卡、小包包", checked: false }
+                            ]
+                        },
+                        {
+                            name: "⚡ 禦寒與電力",
+                            items: [
+                                { text: "行動電源與充電線 (場外人多易斷網/耗電)", checked: false },
+                                { text: "暖暖包數個 (場外排隊極度需要！)", checked: false },
+                                { text: "保暖外套、圍巾", checked: false }
+                            ]
+                        }
+                    ]
+                },
+                28: {
+                    title: "🎤 11/28 演唱會 Day 2 出門前確認清單",
+                    categories: [
+                        {
+                            name: "🎫 門票與身分驗證",
+                            items: [
+                                { text: "演唱會實體門票 / QR Code 截圖", checked: false },
+                                { text: "護照正本與身分證件", checked: false }
+                            ]
+                        },
+                        {
+                            name: "💡 應援裝備",
+                            items: [
+                                { text: "官方手燈 + 備用電池", checked: false },
+                                { text: "應援手幅、小卡", checked: false }
+                            ]
+                        },
+                        {
+                            name: "⚡ 禦寒與電力",
+                            items: [
+                                { text: "行動電源與充電線", checked: false },
+                                { text: "暖暖包與保暖衣物", checked: false }
+                            ]
+                        }
+                    ]
+                },
+                29: {
+                    title: "🎤 11/29 演唱會 Day 3 (最終場) 出門前確認清單",
+                    categories: [
+                        {
+                            name: "🎫 門票與身分驗證",
+                            items: [
+                                { text: "演唱會實體門票 / QR Code 截圖", checked: false },
+                                { text: "護照正本與身分證件", checked: false }
+                            ]
+                        },
+                        {
+                            name: "💡 應援裝備",
+                            items: [
+                                { text: "官方手燈 + 備用電池", checked: false },
+                                { text: "應援手幅、小卡", checked: false }
+                            ]
+                        },
+                        {
+                            name: "⚡ 禦寒與電力",
+                            items: [
+                                { text: "行動電源與充電線", checked: false },
+                                { text: "暖暖包與保暖衣物", checked: false }
+                            ]
+                        }
+                    ]
+                },
+                30: {
+                    title: "🧳 11/30 回程行李收拾與退房清單",
+                    categories: [
+                        {
+                            name: "🏨 房間與退房確認",
+                            items: [
+                                { text: "全面檢查房間、插座，確認無遺留個人物品 (手機/充電器/護照)", checked: false },
+                                { text: "Unseo Sky Top 順利完成 Check-out 退房", checked: false },
+                                { text: "確認行李寄放或直接攜帶出發", checked: false }
+                            ]
+                        },
+                        {
+                            name: "🛍️ 行李打包與戰利品",
+                            items: [
+                                { text: "演唱會周邊、專輯妥善包裹防撞", checked: false },
+                                { text: "OLIVEYOUNG 美妝與伴手禮分類裝箱", checked: false },
+                                { text: "行動電源、打火機等危險物品放手提行李", checked: false },
+                                { text: "行李箱秤重確認 (避免超重)", checked: false }
+                            ]
+                        },
+                        {
+                            name: "✈️ 機場交通與登機",
+                            items: [
+                                { text: "確認前往仁川機場交通（AREX直達車/地鐵/計程車）", checked: false },
+                                { text: "預留提前 2.5 至 3 小時抵達機場辦理登機與免稅店", checked: false },
+                                { text: "回程機票 QR Code 與護照隨身準備好", checked: false }
+                            ]
+                        }
+                    ]
+                }
+            },
+            shopping: {
+                food: [
+                    { text: "【雲西站周邊】BHC 炸雞 / 橋村炸雞 (宵夜首選)", checked: false },
+                    { text: "【雲西站周邊】肉大蔥烤肉 (파절이삼겹살 - 在地人推爆的平價豬五花)", checked: false },
+                    { text: "【雲西站周邊】元祖馬鈴薯排骨湯 (濃郁暖胃、營業時間長)", checked: false },
+                    { text: "【雲西站周邊】Isaac Toast 吐司早餐", checked: false },
+                    { text: "【雲西站周邊】Paris Croissant 咖啡廳貝果與拿鐵", checked: false },
+                    { text: "路邊攤魚板、辣炒年糕", checked: false }
+                ],
+                goods: [
+                    { text: "演唱會官方周邊 / 專輯", checked: false },
+                    { text: "OLIVEYOUNG 美妝保養品", checked: false },
+                    { text: "韓國超商零食 (市售貝果餅乾、杏仁果)", checked: false },
+                    { text: "明星同款服飾 / 潮流小物", checked: false },
+                    { text: "特色伴手禮", checked: false }
+                ]
+            }
+        };
+
+        let appData = JSON.parse(localStorage.getItem('nmixx_ice_trip_data_v5')) || defaultData;
+
+        function saveData() {
+            localStorage.setItem('nmixx_ice_trip_data_v5', JSON.stringify(appData));
+        }
+
+        function toggleMenu() {
+            const menu = document.getElementById('settings-menu');
+            menu.classList.toggle('hidden');
+        }
+
+        window.onclick = function(event) {
+            if (!event.target.matches('button') && !event.target.closest('#settings-menu')) {
+                const menu = document.getElementById('settings-menu');
+                if (menu && !menu.classList.contains('hidden')) {
+                    menu.classList.add('hidden');
+                }
+            }
+        }
+
+        function switchTab(tab) {
+            appData.activeTab = tab;
+            render();
+        }
+
+        function switchDay(day) {
+            appData.currentDay = day;
+            render();
+        }
+
+        function toggleAccordion(day, catIdx) {
+            if (!appData.openAccordions) appData.openAccordions = {};
+            const key = `${day}_${catIdx}`;
+            appData.openAccordions[key] = appData.openAccordions[key] === false ? true : false;
+            saveData();
+            render();
+        }
+
+        function extractTime(timeStr) {
+            const match = timeStr.match(/\d{2}:\d{2}/);
+            return match ? match[0] : "00:00";
+        }
+
+        function addItem(day) {
+            const time = prompt("請輸入時間 (例如 13:00 或 13:00 - 14:30)：", "12:00");
+            if (!time) return;
+            const title = prompt("請輸入新行程名稱：");
+            if (!title) return;
+            const desc = prompt("請輸入行程備註說明：", "");
+            
+            appData.days[day].items.push({
+                id: 'custom_' + Date.now(),
+                time: time,
+                title: title,
+                desc: desc || "",
+                map: "首爾",
+                color: "border-cyan-500",
+                isDefault: false
+            });
+
+            appData.days[day].items.sort((a, b) => {
+                return extractTime(a.time).localeCompare(extractTime(b.time));
+            });
+
+            saveData();
+            render();
+        }
+
+        function deleteItem(day, index) {
+            if (confirm("確定要刪除這個自訂行程嗎？")) {
+                appData.days[day].items.splice(index, 1);
+                saveData();
+                render();
+            }
+        }
+
+        function toggleChecklist(day, catIdx, itemIdx) {
+            appData.checklistsByDay[day].categories[catIdx].items[itemIdx].checked = !appData.checklistsByDay[day].categories[catIdx].items[itemIdx].checked;
+            saveData();
+            render();
+        }
+
+        function toggleShoppingCheck(category, index) {
+            appData.shopping[category][index].checked = !appData.shopping[category][index].checked;
+            saveData();
+            render();
+        }
+
+        function resetData() {
+            if (confirm("確定要重置所有修改，恢復預設值嗎？")) {
+                localStorage.removeItem('nmixx_ice_trip_data_v5');
+                appData = JSON.parse(JSON.stringify(defaultData));
+                render();
+                alert("已恢復預設資料！");
+            }
+        }
+
+        function render() {
+            document.querySelectorAll('.day-btn').forEach(btn => {
+                btn.className = "day-btn px-4 py-1.5 rounded-full text-xs font-bold bg-white text-cyan-900 border border-cyan-200 hover:bg-cyan-50 transition shadow-sm";
+            });
+            const activeBtn = document.getElementById(`btn-day${appData.currentDay}`);
+            if (activeBtn) {
+                activeBtn.className = "day-btn px-4 py-1.5 rounded-full text-xs font-bold bg-cyan-600 text-white shadow-md shadow-cyan-500/30 transition";
+            }
+
+            document.getElementById('nav-itinerary').className = `flex flex-col items-center ${appData.activeTab === 'itinerary' ? 'text-cyan-700 font-bold' : 'hover:text-cyan-700'}`;
+            document.getElementById('nav-checklist').className = `flex flex-col items-center ${appData.activeTab === 'checklist' ? 'text-cyan-700 font-bold' : 'hover:text-cyan-700'}`;
+            document.getElementById('nav-shopping').className = `flex flex-col items-center ${appData.activeTab === 'shopping' ? 'text-cyan-700 font-bold' : 'hover:text-cyan-700'}`;
+
+            const container = document.getElementById('content-container');
+            container.innerHTML = '';
+
+            if (appData.activeTab === 'itinerary') {
+                const dayData = appData.days[appData.currentDay];
+                
+                let html = `
+                    <div class="bg-white/80 backdrop-blur-md border border-cyan-200 rounded-2xl p-3 text-xs text-slate-800 font-medium flex justify-between items-center shadow-md">
+                        <span>🏨 <strong>今日住宿：</strong> <span class="text-cyan-700 font-bold" contenteditable="true" onblur="appData.days[${appData.currentDay}].hotel=this.innerText; saveData();">${dayData.hotel}</span></span>
+                        <span id="inline-countdown" class="bg-cyan-100 text-cyan-800 border border-cyan-300 px-2.5 py-1 rounded-full font-bold text-[11px]">計算中...</span>
+                    </div>
+                `;
+
+                if (dayData.isConcertDay) {
+                    html += `
+                        <div id="urgent-warning" class="hidden text-xs bg-rose-500 text-white font-bold p-2.5 rounded-xl animate-bounce text-center shadow-md border border-rose-300">
+                            ⚠️ 【緊急警示】距離演唱會開演已不到 3 小時，請準備出發！ 🎶
+                        </div>
+                    `;
+                }
+
+                dayData.items.forEach((item, index) => {
+                    let deleteBtnHtml = '';
+                    if (!item.isDefault) {
+                        deleteBtnHtml = `<button onclick="deleteItem(${appData.currentDay}, ${index})" class="absolute top-2 right-2 text-slate-400 hover:text-rose-500 text-xs px-1.5 py-0.5 rounded transition">❌ 刪除</button>`;
+                    }
+
+                    html += `
+                        <div class="bg-white/85 backdrop-blur-md rounded-2xl shadow-md p-4 border-l-4 ${item.color} border-slate-100 relative group">
+                            ${deleteBtnHtml}
+                            <div class="flex justify-between items-start pr-8">
+                                <span class="text-xs font-bold text-cyan-800 bg-cyan-50 border border-cyan-200 px-2 py-0.5 rounded" contenteditable="true" onblur="appData.days[${appData.currentDay}].items[${index}].time=this.innerText; saveData();">${item.time}</span>
+                                <a href="https://maps.google.com/?q=${item.map}" target="_blank" class="text-xs text-sky-600 hover:underline">📍 導航</a>
+                            </div>
+                            <h3 class="text-base font-bold mt-1.5 text-slate-800" contenteditable="true" onblur="appData.days[${appData.currentDay}].items[${index}].title=this.innerText; saveData();">${item.title}</h3>
+                            <p class="text-xs text-slate-600 mt-1" contenteditable="true" onblur="appData.days[${appData.currentDay}].items[${index}].desc=this.innerText; saveData();">${item.desc}</p>
+                        </div>
+                    `;
+                });
+
+                html += `
+                    <button onclick="addItem(${appData.currentDay})" class="w-full py-3 border-2 border-dashed border-cyan-300 text-cyan-700 rounded-2xl font-bold text-xs hover:bg-white/50 transition flex items-center justify-center gap-1 mt-3 shadow-sm">
+                        ➕ 在 11/${appData.currentDay} 新增行程
+                    </button>
+                `;
+
+                container.innerHTML = html;
+
+            } else if (appData.activeTab === 'checklist') {
+                const dayDataObj = appData.checklistsByDay[appData.currentDay];
+                
+                let html = `
+                    <div class="space-y-3">
+                        <div class="bg-cyan-900/90 text-cyan-100 px-4 py-2.5 rounded-2xl text-xs font-bold shadow-md flex justify-between items-center">
+                            <span>📋 ${dayDataObj.title}</span>
+                            <span class="text-[10px] bg-cyan-700 px-2 py-0.5 rounded-full">互動選取</span>
+                        </div>
+                `;
+
+                dayDataObj.categories.forEach((cat, catIdx) => {
+                    const key = `${appData.currentDay}_${catIdx}`;
+                    const isOpen = appData.openAccordions && appData.openAccordions[key] === false ? false : true; // 預設展開
+
+                    html += `
+                        <div class="bg-white/85 backdrop-blur-md rounded-2xl shadow-md border border-cyan-100 overflow-hidden">
+                            <div onclick="toggleAccordion(${appData.currentDay}, ${catIdx})" class="px-4 py-3 bg-cyan-50/80 border-b border-cyan-100 flex justify-between items-center cursor-pointer select-none">
+                                <h3 class="text-xs font-bold text-cyan-900">${cat.name}</h3>
+                                <span class="text-xs text-cyan-700 font-bold">${isOpen ? '▲ 收合' : '▼ 展開'}</span>
+                            </div>
+                    `;
+
+                    if (isOpen) {
+                        html += `<div class="p-3 space-y-1.5">`;
+                        cat.items.forEach((item, itemIdx) => {
+                            html += `
+                                <label class="flex items-center gap-3 p-2 hover:bg-cyan-50/50 rounded-xl cursor-pointer transition">
+                                    <input type="checkbox" ${item.checked ? 'checked' : ''} onclick="toggleChecklist(${appData.currentDay}, ${catIdx}, ${itemIdx})" class="w-4 h-4 text-cyan-600 rounded border-cyan-300 bg-white focus:ring-cyan-500">
+                                    <span class="text-xs ${item.checked ? 'line-through text-slate-400' : 'text-slate-700'}">${item.text}</span>
+                                </label>
+                            `;
+                        });
+                        html += `</div>`;
+                    }
+
+                    html += `</div>`;
+                });
+
+                html += `</div>`;
+                container.innerHTML = html;
+
+            } else if (appData.activeTab === 'shopping') {
+                let html = `<div class="space-y-4">`;
+                const shopCategories = [
+                    { key: 'food', title: '🍲 想吃的韓國美食 / 雲西站推薦' },
+                    { key: 'goods', title: '🛍️ 想買的戰利品 / 周邊 / 伴手禮' }
+                ];
+
+                shopCategories.forEach(cat => {
+                    html += `
+                        <div class="bg-white/85 backdrop-blur-md rounded-2xl shadow-md p-4 space-y-2 border border-cyan-100">
+                            <h2 class="text-sm font-bold text-cyan-800 border-b border-cyan-100 pb-2">${cat.title}</h2>
+                    `;
+                    appData.shopping[cat.key].forEach((item, index) => {
+                        html += `
+                            <label class="flex items-center gap-3 p-2 hover:bg-cyan-50/50 rounded-xl cursor-pointer transition">
+                                <input type="checkbox" ${item.checked ? 'checked' : ''} onclick="toggleShoppingCheck('${cat.key}', ${index})" class="w-4 h-4 text-cyan-600 rounded border-cyan-300 bg-white focus:ring-cyan-500">
+                                <span class="text-xs ${item.checked ? 'line-through text-slate-400' : 'text-slate-700'}">${item.text}</span>
+                            </label>
+                        `;
+                    });
+                    html += `</div>`;
+                });
+                html += `</div>`;
+                container.innerHTML = html;
+            }
+        }
+
+        function updateTimeAndCountdowns() {
+            const now = new Date();
+            
+            // 顯示到分鐘
+            const twHours = String(now.getHours()).padStart(2, '0');
+            const twMinutes = String(now.getMinutes()).padStart(2, '0');
+            document.getElementById('taiwan-time').innerText = `${twHours}:${twMinutes}`;
+
+            const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+            const koreaTime = new Date(utc + (3600000 * 9));
+            const krHours = String(koreaTime.getHours()).padStart(2, '0');
+            const krMinutes = String(koreaTime.getMinutes()).padStart(2, '0');
+            document.getElementById('korea-time').innerText = `${krHours}:${krMinutes}`;
+
+            const dayData = appData.days[appData.currentDay];
+            const inlineCountdownEl = document.getElementById('inline-countdown');
+            
+            if (inlineCountdownEl && dayData && dayData.targetTimeStr) {
+                const targetDate = new Date(dayData.targetTimeStr);
+                const activeNow = (appData.currentDay === 26 || appData.currentDay === 30) ? now : koreaTime;
+                const diffMs = targetDate - activeNow;
+
+                if (diffMs > 0) {
+                    const h = Math.floor(diffMs / (1000 * 60 * 60));
+                    const m = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+                    
+                    let prefix = "距離";
+                    if (appData.currentDay === 26) prefix = "距離出發";
+                    else if (appData.currentDay === 30) prefix = "距離退房";
+                    else prefix = "距離開演";
+
+                    inlineCountdownEl.innerText = `${prefix} ${h}h ${m}m`;
+                } else {
+                    inlineCountdownEl.innerText = `✨ 時間已到 / 進行中`;
+                }
+
+                const warningEl = document.getElementById('urgent-warning');
+                if (warningEl && dayData.isConcertDay) {
+                    const diffHours = diffMs / (1000 * 60 * 60);
+                    if (diffHours > 0 && diffHours <= 3) {
+                        warningEl.classList.remove('hidden');
+                    } else {
+                        warningEl.classList.add('hidden');
+                    }
+                }
+            }
+        }
+        setInterval(updateTimeAndCountdowns, 1000);
+        updateTimeAndCountdowns();
+
+        function updateCountdown() {
+            const departureDate = new Date('2026-11-26T18:30:00+08:00');
+            const now = new Date();
+            const diff = departureDate - now;
+
+            if (diff > 0) {
+                const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                document.getElementById('countdown').innerText = `🐳 總出發：${days}天 ${hours}小時 🎶`;
+            } else {
+                document.getElementById('countdown').innerText = `✈️ 旅程進行中！`;
+            }
+        }
+        updateCountdown();
+
+        render();
+    </script>
+</body>
+</html>
