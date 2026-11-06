@@ -2,9 +2,15 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>🐳 NMIXX和NSER安可場互動行程 (11/26 - 11/30)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#0e7490">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    <title>🐳 NMIXX韓安 </title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
         body { 
@@ -28,11 +34,14 @@
             50% { transform: translateY(-10px) rotate(3deg); }
             100% { transform: translateY(0px) rotate(0deg); }
         }
+        .nav-btn { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 60px; border-radius: 16px; transition: background .15s, transform .1s; -webkit-tap-highlight-color: transparent; }
+        .nav-btn:active { transform: scale(0.96); }
+        .nav-btn.active { background: rgba(207, 250, 254, 0.9); color: #0e7490; font-weight: 700; }
         .jellyfish-float { animation: float 4s ease-in-out infinite; }
         .jellyfish-float-delayed { animation: float 5s ease-in-out infinite 2s; }
     </style>
 </head>
-<body class="pb-28 relative">
+<body class="pb-40 relative">
 
     <!-- 背景裝飾：6隻漂浮水母與音樂音符 -->
     <div class="fixed inset-0 pointer-events-none z-0 overflow-hidden opacity-40">
@@ -53,14 +62,16 @@
         <div class="max-w-md mx-auto p-4 relative z-10">
             <div class="flex justify-between items-center mb-2">
                 <h1 class="text-base font-bold flex items-center gap-1.5 text-cyan-200">
-                    <span>🐳</span> NMIXX和NSER安可場 <span class="text-xs">🎵</span>
+                    <span>🐳</span> NMIXX韓安 <span class="text-xs">🎵</span>
                 </h1>
                 
                 <div class="relative">
                     <button onclick="toggleMenu()" class="bg-white/20 hover:bg-white/30 px-2.5 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1 border border-white/20">
                         ⚙️ 設定
                     </button>
-                    <div id="settings-menu" class="hidden absolute right-0 mt-2 w-36 bg-slate-900 text-slate-200 rounded-xl shadow-2xl py-1 z-50 border border-slate-700">
+                    <div id="settings-menu" class="hidden absolute right-0 mt-2 w-52 bg-slate-900 text-slate-200 rounded-xl shadow-2xl py-1 z-50 border border-slate-700">
+                        <button onclick="syncGoogleSheet()" class="w-full text-left px-4 py-2 text-xs text-cyan-300 hover:bg-slate-800 font-bold transition">☁️ 同步 Google 試算表</button>
+                        <button onclick="document.getElementById('xlsx-input').click()" class="w-full text-left px-4 py-2 text-xs text-cyan-300 hover:bg-slate-800 font-bold transition">📥 匯入 Excel / CSV</button>
                         <button onclick="resetData()" class="w-full text-left px-4 py-2 text-xs text-rose-400 hover:bg-rose-950/50 font-bold transition flex items-center gap-1.5">
                             🔄 重置資料
                         </button>
@@ -73,11 +84,11 @@
             <div class="bg-white/15 backdrop-blur-md rounded-xl p-3 text-xs space-y-1.5 border border-white/30 shadow-inner">
                 <div class="flex justify-between items-center">
                     <span>🛫 去程 (11/26)：RMQ ➔ ICN</span>
-                    <span class="font-bold text-cyan-100" contenteditable="true" onblur="saveData()">18:30 - 22:15 <span class="text-[10px] text-pink-200">(南韓當地)</span></span>
+                    <span class="font-bold text-cyan-100" contenteditable="true" onblur="saveData()">18:30 - 22:15 <span class="text-[10px] text-pink-200">(南韓時間)</span></span>
                 </div>
                 <div class="flex justify-between items-center">
                     <span>🛬 回程 (11/30)：ICN ➔ RMQ</span>
-                    <span class="font-bold text-cyan-100" contenteditable="true" onblur="saveData()">15:35 - 17:30 <span class="text-[10px] text-pink-200">(台中當地)</span></span>
+                    <span class="font-bold text-cyan-100" contenteditable="true" onblur="saveData()">15:35 - 17:30 <span class="text-[10px] text-pink-200">(台灣時間)</span></span>
                 </div>
                 
                 <!-- 雙時區並列：顯示到分鐘 -->
@@ -95,25 +106,31 @@
         </div>
 
         <!-- 永遠釘選在頂部的日期選單 -->
-        <nav id="day-nav-bar" class="bg-white/90 backdrop-blur-md px-4 py-2.5 flex gap-2 overflow-x-auto whitespace-nowrap border-t border-cyan-200/40 max-w-md mx-auto">
-            <button onclick="switchDay(26)" id="btn-day26" class="day-btn px-4 py-1.5 rounded-full text-xs font-bold bg-cyan-600 text-white shadow transition">11/26</button>
-            <button onclick="switchDay(27)" id="btn-day27" class="day-btn px-4 py-1.5 rounded-full text-xs font-bold bg-white text-cyan-900 border border-cyan-200 hover:bg-cyan-50 transition">11/27</button>
-            <button onclick="switchDay(28)" id="btn-day28" class="day-btn px-4 py-1.5 rounded-full text-xs font-bold bg-white text-cyan-900 border border-cyan-200 hover:bg-cyan-50 transition">11/28</button>
-            <button onclick="switchDay(29)" id="btn-day29" class="day-btn px-4 py-1.5 rounded-full text-xs font-bold bg-white text-cyan-900 border border-cyan-200 hover:bg-cyan-50 transition">11/29</button>
-            <button onclick="switchDay(30)" id="btn-day30" class="day-btn px-4 py-1.5 rounded-full text-xs font-bold bg-white text-cyan-900 border border-cyan-200 hover:bg-cyan-50 transition">11/30</button>
-        </nav>
+        <nav id="day-nav-bar" class="bg-white/90 backdrop-blur-md px-4 py-2.5 flex gap-2 overflow-x-auto whitespace-nowrap border-t border-cyan-200/40 max-w-md mx-auto"></nav>
     </div>
 
+    <div id="modal" class="hidden fixed inset-0 z-[60] bg-black/50 flex items-end sm:items-center justify-center" onclick="if(event.target===this)closeModal()">
+        <form id="modal-form" onsubmit="return submitModal(event)" class="bg-white w-full max-w-md rounded-t-3xl sm:rounded-3xl p-5 space-y-3 max-h-[90vh] overflow-y-auto" style="padding-bottom: calc(1.25rem + env(safe-area-inset-bottom));">
+            <h3 id="modal-title" class="font-bold text-cyan-900 text-sm"></h3>
+            <div id="modal-fields" class="space-y-2"></div>
+            <div class="flex gap-2 pt-1">
+                <button type="button" id="modal-del" class="hidden px-4 py-2.5 rounded-xl text-xs font-bold text-rose-600 bg-rose-50">🗑 刪除</button>
+                <button type="button" onclick="closeModal()" class="flex-1 py-2.5 rounded-xl text-xs font-bold bg-slate-100 text-slate-600">取消</button>
+                <button type="submit" class="flex-1 py-2.5 rounded-xl text-xs font-bold bg-cyan-600 text-white">儲存</button>
+            </div>
+        </form>
+    </div>
+    <input type="file" id="xlsx-input" accept=".xlsx,.xls,.csv" class="hidden" onchange="importExcel(this.files[0]); this.value=''">
     <!-- 內容主區塊 -->
     <main class="max-w-md mx-auto px-4 mt-4 space-y-4 relative z-10">
         <div id="content-container"></div>
     </main>
 
     <!-- 底部導覽列 -->
-    <nav class="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md border-t border-cyan-100 max-w-md mx-auto flex justify-around py-3 text-xs text-slate-600 shadow-2xl z-50" style="padding-bottom: calc(0.75rem + env(safe-area-inset-bottom));">
-        <button onclick="switchTab('itinerary')" id="nav-itinerary" class="flex flex-col items-center text-cyan-700 font-bold">📅 行程</button>
-        <button onclick="switchTab('checklist')" id="nav-checklist" class="flex flex-col items-center hover:text-cyan-700">🎒 準備清單</button>
-        <button onclick="switchTab('shopping')" id="nav-shopping" class="flex flex-col items-center hover:text-cyan-700">🛒 購物清單</button>
+    <nav class="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-cyan-100 max-w-md mx-auto flex justify-around items-stretch gap-1 px-2 pt-2 text-slate-600 shadow-2xl z-50" style="padding-bottom: calc(0.5rem + env(safe-area-inset-bottom));">
+        <button onclick="switchTab('itinerary')" id="nav-itinerary" class="nav-btn"><span class="text-[26px] leading-none">📅</span><span class="text-sm mt-1">行程</span></button>
+        <button onclick="switchTab('checklist')" id="nav-checklist" class="nav-btn"><span class="text-[26px] leading-none">🎒</span><span class="text-sm mt-1">準備清單</span></button>
+        <button onclick="switchTab('shopping')" id="nav-shopping" class="nav-btn"><span class="text-[26px] leading-none">🛒</span><span class="text-sm mt-1">購物清單</span></button>
     </nav>
 
     <!-- 互動 JavaScript 邏輯 -->
@@ -376,39 +393,6 @@
             return match ? match[0] : "00:00";
         }
 
-        function addItem(day) {
-            const time = prompt("請輸入時間 (例如 13:00 或 13:00 - 14:30)：", "12:00");
-            if (!time) return;
-            const title = prompt("請輸入新行程名稱：");
-            if (!title) return;
-            const desc = prompt("請輸入行程備註說明：", "");
-            
-            appData.days[day].items.push({
-                id: 'custom_' + Date.now(),
-                time: time,
-                title: title,
-                desc: desc || "",
-                map: "首爾",
-                color: "border-cyan-500",
-                isDefault: false
-            });
-
-            appData.days[day].items.sort((a, b) => {
-                return extractTime(a.time).localeCompare(extractTime(b.time));
-            });
-
-            saveData();
-            render();
-        }
-
-        function deleteItem(day, index) {
-            if (confirm("確定要刪除這個自訂行程嗎？")) {
-                appData.days[day].items.splice(index, 1);
-                saveData();
-                render();
-            }
-        }
-
         function toggleChecklist(day, catIdx, itemIdx) {
             appData.checklistsByDay[day].categories[catIdx].items[itemIdx].checked = !appData.checklistsByDay[day].categories[catIdx].items[itemIdx].checked;
             saveData();
@@ -430,7 +414,191 @@
             }
         }
 
+        // ===== 資料來源：Excel / Google 試算表 =====
+        const SHEETS = ['日設定', '行程', '準備清單', '購物清單'];
+        const COLORS = { '一般': 'border-cyan-500', '交通': 'border-sky-500', '演唱會': 'border-pink-500', '返程': 'border-teal-500' };
+        const SHEET_KEY = 'trip_sheet_id';
+
+        function esc(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+        function renderNav() {
+            document.getElementById('day-nav-bar').innerHTML = Object.keys(appData.days).map(d =>
+                `<button onclick="switchDay(${d})" id="btn-day${d}" class="day-btn px-4 py-1.5 rounded-full text-xs font-bold">11/${d}</button>`).join('');
+        }
+
+        function addChecklistItem(d, c) {
+            openForm({ title: '➕ 新增準備項目', fields: [{ name: 'text', label: '項目', required: true }],
+                onSubmit: v => { appData.checklistsByDay[d].categories[c].items.push({ text: v.text.trim(), checked: false, custom: true }); saveData(); render(); } });
+        }
+        function delChecklistItem(d, c, i) { appData.checklistsByDay[d].categories[c].items.splice(i, 1); saveData(); render(); }
+        function addShoppingItem(k) {
+            openForm({ title: '➕ 新增購物項目', fields: [{ name: 'text', label: '項目', required: true }],
+                onSubmit: v => { appData.shopping[k].push({ text: v.text.trim(), checked: false, custom: true }); saveData(); render(); } });
+        }
+        function delShoppingItem(k, i) { appData.shopping[k].splice(i, 1); saveData(); render(); }
+
+        function applySheets(S) {
+            const chk = new Set(), keep = a => a.forEach(i => i.checked && chk.add(i.text));
+            Object.values(appData.checklistsByDay).forEach(d => d.categories.forEach(c => keep(c.items)));
+            keep(appData.shopping.food); keep(appData.shopping.goods);
+            const num = v => { const m = String(v).match(/(\d+)\s*$/); return m ? +m[1] : NaN; };
+            const old = appData, days = {}, cl = {};
+            (S['日設定'] || []).forEach(r => {
+                const d = num(r['日']); if (isNaN(d)) return;
+                days[d] = { hotel: r['住宿'] || '', targetTimeStr: r['倒數目標時間'] || '', countdownLabel: r['倒數標題'] || '',
+                            isConcertDay: /^(Y|是|1|TRUE)/i.test(r['演唱會日'] || ''), items: [] };
+                cl[d] = { title: r['準備清單標題'] || `11/${d} 準備清單`, categories: [] };
+            });
+            (S['行程'] || []).forEach((r, i) => {
+                const d = num(r['日']); if (!days[d] || !r['標題']) return;
+                days[d].items.push({ id: 'def_s' + i, time: r['時間'] || '', title: r['標題'], desc: r['備註'] || '',
+                    map: r['地圖關鍵字'] || r['標題'], color: COLORS[r['類型']] || COLORS['一般'], isDefault: true });
+            });
+            (S['準備清單'] || []).forEach(r => {
+                const d = num(r['日']); if (!cl[d] || !r['項目']) return;
+                const name = r['分類'] || '其他'; let c = cl[d].categories.find(x => x.name === name);
+                if (!c) cl[d].categories.push(c = { name, items: [] });
+                c.items.push({ text: r['項目'], checked: chk.has(r['項目']) });
+            });
+            const shop = { food: [], goods: [] };
+            (S['購物清單'] || []).forEach(r => {
+                if (!r['項目']) return;
+                shop[/美食|food/i.test(r['類別']) ? 'food' : 'goods'].push({ text: r['項目'], checked: chk.has(r['項目']) });
+            });
+            // 保留自己在 App 內新增的內容
+            Object.keys(days).forEach(d => {
+                const o = old.days[d];
+                if (o) { days[d].items.push(...o.items.filter(i => !i.isDefault)); days[d].items.sort((a, b) => extractTime(a.time).localeCompare(extractTime(b.time))); }
+                const oc = old.checklistsByDay[d];
+                if (oc) oc.categories.forEach(c => {
+                    const cust = c.items.filter(i => i.custom); if (!cust.length) return;
+                    let t = cl[d].categories.find(x => x.name === c.name);
+                    if (!t) cl[d].categories.push(t = { name: c.name, items: [] });
+                    t.items.push(...cust);
+                });
+            });
+            ['food', 'goods'].forEach(k => shop[k].push(...old.shopping[k].filter(i => i.custom)));
+            appData.days = days; appData.checklistsByDay = cl; appData.shopping = shop;
+            if (!days[appData.currentDay]) appData.currentDay = +Object.keys(days)[0];
+            saveData(); render(); updateTimeAndCountdowns();
+        }
+
+        function finishImport(S, silent) {
+            if (!S['日設定'] || !S['行程']) { if (!silent) alert('找不到「日設定」或「行程」工作表，請使用範本格式。'); return false; }
+            applySheets(S); if (!silent) alert('✅ 已更新基礎資料（你自己新增的內容已保留）'); return true;
+        }
+
+        function importExcel(file) {
+            if (!file) return;
+            const rd = new FileReader();
+            rd.onload = e => {
+                try {
+                    const wb = XLSX.read(e.target.result, { type: 'array' }), S = {};
+                    SHEETS.forEach(n => { if (wb.Sheets[n]) S[n] = XLSX.utils.sheet_to_json(wb.Sheets[n], { raw: false, defval: '' }); });
+                    finishImport(S);
+                } catch (err) { alert('讀取失敗：' + err.message); }
+            };
+            rd.readAsArrayBuffer(file);
+        }
+
+        function parseCSV(t) {
+            const rows = []; let r = [], f = '', q = false;
+            for (let i = 0; i < t.length; i++) {
+                const c = t[i];
+                if (q) { if (c === '"') { if (t[i + 1] === '"') { f += '"'; i++; } else q = false; } else f += c; }
+                else if (c === '"') q = true;
+                else if (c === ',') { r.push(f); f = ''; }
+                else if (c === '\n' || c === '\r') { if (c === '\r' && t[i + 1] === '\n') i++; r.push(f); rows.push(r); r = []; f = ''; }
+                else f += c;
+            }
+            if (f || r.length) { r.push(f); rows.push(r); }
+            const head = (rows.shift() || []).map(h => h.trim());
+            return rows.filter(x => x.some(v => v)).map(x => Object.fromEntries(head.map((h, i) => [h, (x[i] || '').trim()])));
+        }
+
+        async function fetchSheet(id) {
+            const S = {};
+            for (const n of SHEETS) {
+                const r = await fetch(`https://docs.google.com/spreadsheets/d/${id}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(n)}`);
+                if (!r.ok) throw new Error(n);
+                S[n] = parseCSV(await r.text());
+            }
+            return S;
+        }
+
+        async function syncGoogleSheet() {
+            let id = prompt('貼上 Google 試算表網址或 ID\n（需設為「知道連結的任何人可檢視」）：', localStorage.getItem(SHEET_KEY) || '');
+            if (!id) return;
+            id = (id.match(/\/d\/([\w-]+)/) || [])[1] || id.trim();
+            try { finishImport(await fetchSheet(id)); localStorage.setItem(SHEET_KEY, id); }
+            catch (err) { alert('同步失敗，請確認網路、分享權限與工作表名稱（' + err.message + '）'); }
+        }
+
+        (async function autoSync() {
+            const id = localStorage.getItem(SHEET_KEY);
+            if (!id || !navigator.onLine) return;
+            try { finishImport(await fetchSheet(id), true); } catch (e) { /* 離線或失敗時沿用本機資料 */ }
+        })();
+
+        // ===== 表單（取代 prompt）與行程編輯 =====
+        let modalSubmit = null;
+        function openForm({ title, fields, values = {}, onSubmit, onDelete }) {
+            document.getElementById('modal-title').textContent = title;
+            const cls = 'w-full mt-0.5 border border-cyan-200 rounded-xl px-3 py-2 text-base bg-white font-normal';
+            document.getElementById('modal-fields').innerHTML = fields.map(f => {
+                const v = values[f.name] ?? '';
+                const input = f.type === 'select'
+                    ? `<select name="${f.name}" class="${cls}">${f.options.map(o => `<option ${o === v ? 'selected' : ''}>${esc(o)}</option>`).join('')}</select>`
+                    : f.type === 'textarea'
+                    ? `<textarea name="${f.name}" rows="2" class="${cls}">${esc(v)}</textarea>`
+                    : `<input name="${f.name}" value="${esc(v)}" placeholder="${esc(f.ph || '')}" ${f.required ? 'required' : ''} class="${cls}">`;
+                return `<label class="block text-[11px] font-bold text-slate-600">${f.label}${input}</label>`;
+            }).join('');
+            const del = document.getElementById('modal-del');
+            del.classList.toggle('hidden', !onDelete);
+            del.onclick = () => { closeModal(); onDelete(); };
+            modalSubmit = onSubmit;
+            document.getElementById('modal').classList.remove('hidden');
+            const first = document.querySelector('#modal-fields input, #modal-fields textarea'); if (first) first.focus();
+        }
+        function closeModal() { document.getElementById('modal').classList.add('hidden'); modalSubmit = null; }
+        function submitModal(e) {
+            e.preventDefault();
+            const v = Object.fromEntries(new FormData(e.target));
+            const cb = modalSubmit; closeModal(); if (cb) cb(v);
+            return false;
+        }
+
+        const TYPES = Object.keys(COLORS);
+        const typeOf = c => TYPES.find(t => COLORS[t] === c) || '一般';
+        const itemFields = [
+            { name: 'time', label: '時間', ph: '13:00 或 13:00 - 14:30', required: true },
+            { name: 'title', label: '行程名稱', required: true },
+            { name: 'desc', label: '備註', type: 'textarea' },
+            { name: 'map', label: '地圖搜尋關鍵字（留空＝行程名稱）' },
+            { name: 'type', label: '類型（左側色條）', type: 'select', options: TYPES }
+        ];
+        function mkItem(v, isDefault, id) {
+            const title = v.title.trim();
+            return { id: id || 'custom_' + Date.now(), time: v.time.trim(), title, desc: (v.desc || '').trim(),
+                     map: (v.map || '').trim() || title, color: COLORS[v.type] || COLORS['一般'], isDefault };
+        }
+        function addItem(day) {
+            openForm({ title: `➕ 新增 11/${day} 行程`, fields: itemFields, values: { time: '12:00', type: '一般' }, onSubmit: v => {
+                appData.days[day].items.push(mkItem(v, false)); saveData(); render();
+            } });
+        }
+        function editItem(day, i) {
+            const it = appData.days[day].items[i];
+            openForm({ title: '✏️ 編輯行程' + (it.isDefault ? '（基礎行程，下次同步會依表格還原）' : ''), fields: itemFields,
+                values: { ...it, type: typeOf(it.color) },
+                onSubmit: v => { appData.days[day].items[i] = mkItem(v, it.isDefault, it.id); saveData(); render(); },
+                onDelete: () => { if (confirm('確定刪除這個行程？')) { appData.days[day].items.splice(i, 1); saveData(); render(); } } });
+        }
+        function sortItems(arr) { arr.sort((a, b) => extractTime(a.time).localeCompare(extractTime(b.time))); }
+
         function render() {
+            renderNav();
             document.querySelectorAll('.day-btn').forEach(btn => {
                 btn.className = "day-btn px-4 py-1.5 rounded-full text-xs font-bold bg-white text-cyan-900 border border-cyan-200 hover:bg-cyan-50 transition shadow-sm";
             });
@@ -439,9 +607,9 @@
                 activeBtn.className = "day-btn px-4 py-1.5 rounded-full text-xs font-bold bg-cyan-600 text-white shadow-md shadow-cyan-500/30 transition";
             }
 
-            document.getElementById('nav-itinerary').className = `flex flex-col items-center ${appData.activeTab === 'itinerary' ? 'text-cyan-700 font-bold' : 'hover:text-cyan-700'}`;
-            document.getElementById('nav-checklist').className = `flex flex-col items-center ${appData.activeTab === 'checklist' ? 'text-cyan-700 font-bold' : 'hover:text-cyan-700'}`;
-            document.getElementById('nav-shopping').className = `flex flex-col items-center ${appData.activeTab === 'shopping' ? 'text-cyan-700 font-bold' : 'hover:text-cyan-700'}`;
+            document.getElementById('nav-itinerary').className = `nav-btn ${appData.activeTab === 'itinerary' ? 'active' : ''}`;
+            document.getElementById('nav-checklist').className = `nav-btn ${appData.activeTab === 'checklist' ? 'active' : ''}`;
+            document.getElementById('nav-shopping').className = `nav-btn ${appData.activeTab === 'shopping' ? 'active' : ''}`;
 
             const container = document.getElementById('content-container');
             container.innerHTML = '';
@@ -451,7 +619,7 @@
                 
                 let html = `
                     <div class="bg-white/80 backdrop-blur-md border border-cyan-200 rounded-2xl p-3 text-xs text-slate-800 font-medium flex justify-between items-center shadow-md">
-                        <span>🏨 <strong>今日住宿：</strong> <span class="text-cyan-700 font-bold" contenteditable="true" onblur="appData.days[${appData.currentDay}].hotel=this.innerText; saveData();">${dayData.hotel}</span></span>
+                        <span>🏨 <strong>今日住宿：</strong> <span class="text-cyan-700 font-bold" contenteditable="true" onblur="appData.days[${appData.currentDay}].hotel=this.innerText; saveData();">${esc(dayData.hotel)}</span></span>
                         <span id="inline-countdown" class="bg-cyan-100 text-cyan-800 border border-cyan-300 px-2.5 py-1 rounded-full font-bold text-[11px]">計算中...</span>
                     </div>
                 `;
@@ -464,21 +632,21 @@
                     `;
                 }
 
+                sortItems(dayData.items);
                 dayData.items.forEach((item, index) => {
-                    let deleteBtnHtml = '';
-                    if (!item.isDefault) {
-                        deleteBtnHtml = `<button onclick="deleteItem(${appData.currentDay}, ${index})" class="absolute top-2 right-2 text-slate-400 hover:text-rose-500 text-xs px-1.5 py-0.5 rounded transition">❌ 刪除</button>`;
-                    }
-
+                    const d = appData.currentDay;
+                    const btn = 'px-3 py-1.5 rounded-lg bg-slate-100 text-slate-600 disabled:opacity-30';
                     html += `
-                        <div class="bg-white/85 backdrop-blur-md rounded-2xl shadow-md p-4 border-l-4 ${item.color} border-slate-100 relative group">
-                            ${deleteBtnHtml}
-                            <div class="flex justify-between items-start pr-8">
-                                <span class="text-xs font-bold text-cyan-800 bg-cyan-50 border border-cyan-200 px-2 py-0.5 rounded" contenteditable="true" onblur="appData.days[${appData.currentDay}].items[${index}].time=this.innerText; saveData();">${item.time}</span>
-                                <a href="https://maps.google.com/?q=${item.map}" target="_blank" class="text-xs text-sky-600 hover:underline">📍 導航</a>
+                        <div class="bg-white/85 backdrop-blur-md rounded-2xl shadow-md p-4 border-l-4 ${item.color} border-slate-100">
+                            <div class="flex justify-between items-start">
+                                <span class="text-xs font-bold text-cyan-800 bg-cyan-50 border border-cyan-200 px-2 py-0.5 rounded">${esc(item.time)}</span>
+                                <a href="https://maps.google.com/?q=${encodeURIComponent(item.map)}" target="_blank" class="text-xs text-sky-600 hover:underline">📍 導航</a>
                             </div>
-                            <h3 class="text-base font-bold mt-1.5 text-slate-800" contenteditable="true" onblur="appData.days[${appData.currentDay}].items[${index}].title=this.innerText; saveData();">${item.title}</h3>
-                            <p class="text-xs text-slate-600 mt-1" contenteditable="true" onblur="appData.days[${appData.currentDay}].items[${index}].desc=this.innerText; saveData();">${item.desc}</p>
+                            <h3 class="text-base font-bold mt-1.5 text-slate-800">${esc(item.title)}</h3>
+                            ${item.desc ? `<p class="text-xs text-slate-600 mt-1 whitespace-pre-line">${esc(item.desc)}</p>` : ''}
+                            <div class="flex justify-end gap-1.5 mt-2 text-xs">
+                                <button onclick="editItem(${d}, ${index})" class="${btn}">✏️ 編輯</button>
+                            </div>
                         </div>
                     `;
                 });
@@ -498,7 +666,6 @@
                     <div class="space-y-3">
                         <div class="bg-cyan-900/90 text-cyan-100 px-4 py-2.5 rounded-2xl text-xs font-bold shadow-md flex justify-between items-center">
                             <span>📋 ${dayDataObj.title}</span>
-                            <span class="text-[10px] bg-cyan-700 px-2 py-0.5 rounded-full">互動選取</span>
                         </div>
                 `;
 
@@ -520,11 +687,12 @@
                             html += `
                                 <label class="flex items-center gap-3 p-2 hover:bg-cyan-50/50 rounded-xl cursor-pointer transition">
                                     <input type="checkbox" ${item.checked ? 'checked' : ''} onclick="toggleChecklist(${appData.currentDay}, ${catIdx}, ${itemIdx})" class="w-4 h-4 text-cyan-600 rounded border-cyan-300 bg-white focus:ring-cyan-500">
-                                    <span class="text-xs ${item.checked ? 'line-through text-slate-400' : 'text-slate-700'}">${item.text}</span>
+                                    <span class="text-xs ${item.checked ? 'line-through text-slate-400' : 'text-slate-700'}">${esc(item.text)}</span>
+                                    ${item.custom ? `<button onclick="delChecklistItem(${appData.currentDay}, ${catIdx}, ${itemIdx})" class="ml-auto text-slate-400 hover:text-rose-500 text-xs px-1">✕</button>` : ''}
                                 </label>
                             `;
                         });
-                        html += `</div>`;
+                        html += `<button onclick="addChecklistItem(${appData.currentDay}, ${catIdx})" class="w-full py-1.5 text-[11px] text-cyan-700 border border-dashed border-cyan-300 rounded-xl">➕ 新增項目</button></div>`;
                     }
 
                     html += `</div>`;
@@ -549,11 +717,12 @@
                         html += `
                             <label class="flex items-center gap-3 p-2 hover:bg-cyan-50/50 rounded-xl cursor-pointer transition">
                                 <input type="checkbox" ${item.checked ? 'checked' : ''} onclick="toggleShoppingCheck('${cat.key}', ${index})" class="w-4 h-4 text-cyan-600 rounded border-cyan-300 bg-white focus:ring-cyan-500">
-                                <span class="text-xs ${item.checked ? 'line-through text-slate-400' : 'text-slate-700'}">${item.text}</span>
+                                <span class="text-xs ${item.checked ? 'line-through text-slate-400' : 'text-slate-700'}">${esc(item.text)}</span>
+                                ${item.custom ? `<button onclick="delShoppingItem('${cat.key}', ${index})" class="ml-auto text-slate-400 hover:text-rose-500 text-xs px-1">✕</button>` : ''}
                             </label>
                         `;
                     });
-                    html += `</div>`;
+                    html += `<button onclick="addShoppingItem('${cat.key}')" class="w-full py-1.5 text-[11px] text-cyan-700 border border-dashed border-cyan-300 rounded-xl">➕ 新增項目</button></div>`;
                 });
                 html += `</div>`;
                 container.innerHTML = html;
@@ -561,6 +730,7 @@
         }
 
         function updateTimeAndCountdowns() {
+            updateCountdown();
             const now = new Date();
             
             // 顯示到分鐘
@@ -579,7 +749,7 @@
             
             if (inlineCountdownEl && dayData && dayData.targetTimeStr) {
                 const targetDate = new Date(dayData.targetTimeStr);
-                const activeNow = (appData.currentDay === 26 || appData.currentDay === 30) ? now : koreaTime;
+                const activeNow = now;
                 const diffMs = targetDate - activeNow;
 
                 if (diffMs > 0) {
@@ -590,6 +760,7 @@
                     if (appData.currentDay === 26) prefix = "距離出發";
                     else if (appData.currentDay === 30) prefix = "距離退房";
                     else prefix = "距離開演";
+                    if (dayData.countdownLabel) prefix = dayData.countdownLabel;
 
                     inlineCountdownEl.innerText = `${prefix} ${h}h ${m}m`;
                 } else {
@@ -626,6 +797,7 @@
         updateCountdown();
 
         render();
+        if ('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('sw.js').catch(() => {});
     </script>
 </body>
 </html>
