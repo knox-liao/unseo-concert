@@ -31,9 +31,15 @@ function getSortMinutes(timeStr) {
 
 // 取得指定天數（預設行程 + 手機手動新增行程）並自動依時間排序
 function getDaySchedule(di) {
-  const baseList = TRIP.days[di].schedule.map((item, idx) => ({
+  const seen = {};
+  const baseList = TRIP.days[di].schedule.map((item, idx) => {
+    const k = "base_" + di + "_" + (item.time || "") + "_" + (item.title || "");
+    seen[k] = (seen[k] || 0) + 1;
+    item = { ...item, _k: seen[k] > 1 ? k + "#" + seen[k] : k };
+    return item;
+  }).map(item => ({
     ...item,
-    _uid: "base_" + di + "_" + idx,
+    _uid: item._k,
     _isCustom: false
   }));
   const customAll = store.get("customEvents", {});
@@ -61,8 +67,7 @@ function buildAllSchedules() {
       const sMin = toMin(sm[0]);
       const eMin = em ? toMin(em[em.length - 1]) : sMin + 60;
       const sOff = sMin < 360 ? 1 : 0;
-      let eOff = eMin < 360 ? 1 : 0;
-      if (eOff === 0 && eMin < sMin) eOff = 1;
+      const eOff = sOff + (eMin < sMin ? 1 : 0);
 
       let start = Date.UTC(Y, M - 1, D + sOff, 0, sMin) - 9 * 3600000;
       let end = Date.UTC(Y, M - 1, D + eOff, 0, eMin) - 9 * 3600000;
@@ -793,7 +798,7 @@ function calc() {
   $("#twdSub").textContent = krw ? `₩${fmt(krw)} × ${rate}` : "輸入韓元即時換算";
   const t = parseFloat($("#twdIn").value) || 0;
   $("#krwOut").textContent = "₩ " + (rate ? fmt(t / rate) : 0);
-  store.set("rate", rate);
+  if (rate > 0) store.set("rate", rate);
 }
 function setRateStatus(msg) { const el = $("#rateStatus"); if (el) el.textContent = msg; }
 
@@ -828,7 +833,7 @@ function openFx(o) {
 }
 
 (function initFx() {
-  $("#rate").value = store.get("rate", 0.0225);
+  { const r = parseFloat(store.get("rate", 0.0225)); $("#rate").value = r > 0 ? r : 0.0225; }
   $("#presets").innerHTML = [5000, 10000, 25000, 50000].map(v => `<button data-v="${v}">₩${fmt(v)}</button>`).join("");
   $("#presets").addEventListener("click", e => { const v = e.target.dataset.v; if (v) { $("#krw").value = v; calc(); } });
   ["krw", "twdIn"].forEach(id => $("#" + id).addEventListener("input", calc));
@@ -843,7 +848,11 @@ function openFx(o) {
 
 /* ================= 離線 Service Worker 註冊 ================= */
 if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
-  navigator.serviceWorker.register("./sw.js").catch(() => {});
+  navigator.serviceWorker.register("./sw.js").then(reg => {
+    reg.update().catch(() => {});
+    document.addEventListener("visibilitychange", () => { if (!document.hidden) reg.update().catch(() => {}); });
+  }).catch(() => {});
+  if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
 }
 
 /* ================= 啟動 ================= */
