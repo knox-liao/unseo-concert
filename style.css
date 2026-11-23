@@ -42,6 +42,9 @@ a{color:inherit}
 .jf2{animation:float 5s ease-in-out infinite 2s}
 .pulse{animation:pulse 2s ease-in-out infinite}
 
+.sbfill{position:fixed;top:0;left:0;right:0;height:max(env(safe-area-inset-top),6px);background:#0c4a6e;z-index:200;pointer-events:none}
+html{background-color:#0c4a6e}
+
 /* 頂部固定區（純色，無漸層；針對 iPhone 16 Pro 402pt 寬調整） */
 .topbar{
   position:sticky;top:0;z-index:50;
