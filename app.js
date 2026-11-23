@@ -357,16 +357,16 @@ function safetyHTML() {
 }
 
 /* ================= 🎒 清單：按天分類的完整準備清單管理器 =================
-   儲存鍵（localStorage，皆以 incheon_ck_v2_ 開頭）：
+   儲存鍵（localStorage，皆以 incheon_ck_v3_ 開頭）：
    checked 勾選狀態｜custom 自訂項目｜edits 預設項目改名｜deleted 預設項目隱藏｜open 展開/收合｜hidedone 只看未完成｜tab 目前分頁 */
 const CKK = {
-  checked: "incheon_ck_v2_checked",
-  custom: "incheon_ck_v2_custom",
-  edits: "incheon_ck_v2_edits",
-  del: "incheon_ck_v2_deleted",
-  open: "incheon_ck_v2_open",
-  hide: "incheon_ck_v2_hidedone",
-  tab: "incheon_ck_v2_tab"
+  checked: "incheon_ck_v3_checked",
+  custom: "incheon_ck_v3_custom",
+  edits: "incheon_ck_v3_edits",
+  del: "incheon_ck_v3_deleted",
+  open: "incheon_ck_v3_open",
+  hide: "incheon_ck_v3_hidedone",
+  tab: "incheon_ck_v3_tab"
 };
 const CK_TAB_KEYS = CHECKLIST_TABS.map(t => t.key);
 let ckEditing = null;
@@ -388,7 +388,7 @@ function ckGetTab() {
 // 某類別目前「看得到」的項目：預設項目（排除已刪除、套用改名）＋自訂項目
 function ckVisibleItems(g, st) {
   const base = g.items.filter(i => !st.del[i.id]).map(i => ({
-    id: i.id, text: st.edits[i.id] != null ? st.edits[i.id] : i.text, custom: false
+    id: i.id, text: st.edits[i.id] != null ? st.edits[i.id] : i.text, custom: false, kr: i.kr || "", note: i.note || ""
   }));
   const cus = (st.custom[g.id] || []).map(c => ({ id: c.id, text: c.text, custom: true }));
   return base.concat(cus);
@@ -411,7 +411,7 @@ function checklistHTML() {
 
 
   const progress = `<div class="cl-title">${esc(meta.title)}
-      <div class="cl-stat">已完成 ${done} / ${total} 項（${pct}%）</div>
+      <div class="cl-stat">${esc(meta.doneLabel || "已完成")} ${done} / ${total} 項（${pct}%）</div>
       <div class="bar"><i style="width:${pct}%"></i></div></div>`;
 
   const tools = `<div class="ck-tools">
@@ -430,14 +430,16 @@ function checklistHTML() {
       </div>`;
     }
     const on = !!st.checked[it.id];
-    return `<div class="ck-row ${on ? "is-done" : ""}">
+    const extra = (it.note || it.kr)
+      ? `<div class="ck-food">${it.note ? `<div class="ck-note">${esc(it.note)}</div>` : ""}${mapsHTML(it.kr)}</div>` : "";
+    return `<div class="ck-item ${on ? "is-done" : ""}"><div class="ck-row ${on ? "is-done" : ""}">
       <label class="chk">
         <input type="checkbox" data-ck="${esc(it.id)}" ${on ? "checked" : ""}>
         <span class="t">${esc(it.text)}</span>
       </label>
       <button class="ck-ib" data-act="ckEdit" data-v="${esc(it.id)}" aria-label="編輯項目" title="編輯">✏️</button>
       <button class="ck-ib del" data-act="ckDel" data-v="${esc(it.id)}" data-cat="${esc(gid)}" aria-label="刪除項目" title="刪除">🗑️</button>
-    </div>`;
+    </div>${extra}</div>`;
   };
 
   const groups = CHECKLIST_DATA[key].map(g => {
@@ -605,8 +607,6 @@ function render(keepScroll) {
 }
 
 function goto(t) {
-  // 從其他分頁進入清單時，自動切到目前行程日的專屬清單（Day N）
-  if (t === "checklist" && tab !== "checklist") ckSetTab("day" + (day + 1));
   tab = t; store.set("tab", t); render(false); window.scrollTo({ top: 0 });
 }
 
@@ -725,7 +725,6 @@ document.addEventListener("click", e => {
     case "seg": store.set("seg", v); render(true); break;
     case "ckTab": {
       ckSetTab(v);
-      if (/^day[1-5]$/.test(v)) { day = +v.slice(3) - 1; store.set("day", day); }  // 與行程日期連動
       render(false); window.scrollTo({ top: 0 });
       break;
     }
@@ -869,7 +868,6 @@ function openFx(o) {
       if (i >= 0 && n >= 0 && n < CK_TAB_KEYS.length) {
         const key = CK_TAB_KEYS[n];
         ckSetTab(key);
-        if (/^day[1-5]$/.test(key)) { day = +key.slice(3) - 1; store.set("day", day); }
         moved = true;
       }
     }

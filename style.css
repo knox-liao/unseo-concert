@@ -286,3 +286,11 @@ main{max-width:480px;margin:0 auto;padding:14px;position:relative;z-index:10}
 #main.sw-l{animation:swl .22s ease-out}
 #main.sw-r{animation:swr .22s ease-out}
 @media (prefers-reduced-motion:reduce){#main.sw-l,#main.sw-r{animation:none}}
+
+/* 清單：美食項目（備註＋地圖／大字卡按鈕） */
+.ck-item.is-done .ck-food{opacity:.55}
+.ck-food{padding:0 4px 10px 8px}
+.ck-note{font-size:12px;line-height:1.45;color:#475569;background:#f0fdfa;border:1px solid #ccfbf1;border-radius:10px;padding:6px 10px;margin-bottom:6px}
+.ck-food .maps{margin-top:0}
+.ck-food .mrow .btn{min-width:0;padding:0 4px;font-size:12.5px;white-space:nowrap}
+.ck-item+.ck-item{border-top:1px dashed #e0f2fe}
