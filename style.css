@@ -51,7 +51,8 @@ html{background-color:#0c4a6e}
   background:#0c4a6e;
   color:#fff;box-shadow:0 2px 6px rgba(0,0,0,.18);
   border-bottom:1px solid #0e7490;
-  padding-top:env(safe-area-inset-top);
+  /* 往下延伸 44px，讓標題與匯率按鈕避開 iOS 狀態列下方的系統漸層區 */
+  padding-top:calc(env(safe-area-inset-top) + 44px);
 }
 .topin{max-width:480px;margin:0 auto;padding:8px 14px 4px;display:flex;align-items:center;gap:10px}
 .brand{margin:0;flex:1;min-width:0;font-size:17px;font-weight:700;color:#a5f3fc;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
