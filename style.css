@@ -278,3 +278,11 @@ main{max-width:480px;margin:0 auto;padding:14px;position:relative;z-index:10}
 .seat-chip{display:inline-block;font-weight:700;font-size:12px;color:#0e7490;background:#cffafe;border:1px solid #67e8f9;border-radius:8px;padding:1px 7px;white-space:nowrap}
 .tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
 .fxbtn,.day-btn,.nav-btn,.pbtn{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+
+/* 左右滑動切換動畫 */
+#main{touch-action:pan-y}
+@keyframes swl{from{opacity:.3;transform:translateX(36px)}to{opacity:1;transform:none}}
+@keyframes swr{from{opacity:.3;transform:translateX(-36px)}to{opacity:1;transform:none}}
+#main.sw-l{animation:swl .22s ease-out}
+#main.sw-r{animation:swr .22s ease-out}
+@media (prefers-reduced-motion:reduce){#main.sw-l,#main.sw-r{animation:none}}

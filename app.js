@@ -846,6 +846,41 @@ function openFx(o) {
   window.addEventListener("online", () => autoRate(false));
 })();
 
+/* ================= 左右滑動切換日期／清單分頁 ================= */
+(function initSwipe() {
+  const el = $("#main");
+  let sx = 0, sy = 0, st = 0, ok = false;
+  const blocked = t => t.closest && t.closest("input,textarea,select,.field,.tbl-wrap,.seg,.presets,.ck-edit");
+  el.addEventListener("touchstart", e => {
+    if (e.touches.length !== 1 || blocked(e.target) || (typeof ckEditing !== "undefined" && ckEditing)) { ok = false; return; }
+    ok = true; sx = e.touches[0].clientX; sy = e.touches[0].clientY; st = Date.now();
+  }, { passive: true });
+  el.addEventListener("touchend", e => {
+    if (!ok) return; ok = false;
+    const t = e.changedTouches[0], dx = t.clientX - sx, dy = t.clientY - sy;
+    if (Math.abs(dx) < 70 || Math.abs(dx) < Math.abs(dy) * 1.6 || Date.now() - st > 700) return;
+    const dir = dx < 0 ? 1 : -1;            // 左滑 → 下一天；右滑 → 前一天
+    let moved = false;
+    if (tab === "itinerary") {
+      const n = day + dir;
+      if (n >= 0 && n < TRIP.days.length) { day = n; store.set("day", day); moved = true; }
+    } else if (tab === "checklist") {
+      const i = CK_TAB_KEYS.indexOf(ckGetTab()), n = i + dir;
+      if (i >= 0 && n >= 0 && n < CK_TAB_KEYS.length) {
+        const key = CK_TAB_KEYS[n];
+        ckSetTab(key);
+        if (/^day[1-5]$/.test(key)) { day = +key.slice(3) - 1; store.set("day", day); }
+        moved = true;
+      }
+    }
+    if (!moved) return;
+    render(false); window.scrollTo({ top: 0 });
+    el.classList.remove("sw-l", "sw-r"); void el.offsetWidth;
+    el.classList.add(dir > 0 ? "sw-l" : "sw-r");
+  }, { passive: true });
+  el.addEventListener("touchcancel", () => { ok = false; }, { passive: true });
+})();
+
 /* ================= 離線 Service Worker 註冊 ================= */
 if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
   navigator.serviceWorker.register("./sw.js").then(reg => {
