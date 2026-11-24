@@ -294,3 +294,12 @@ main{max-width:480px;margin:0 auto;padding:14px;position:relative;z-index:10}
 .ck-food .maps{margin-top:0}
 .ck-food .mrow .btn{min-width:0;padding:0 4px;font-size:12.5px;white-space:nowrap}
 .ck-item+.ck-item{border-top:1px dashed #e0f2fe}
+
+/* 行程完成後收合：只顯示 time / title / category */
+.item.collapsed{padding-top:10px;padding-bottom:10px}
+.item.collapsed h3{margin-top:6px}
+.h3-tog{display:flex;align-items:center;justify-content:space-between;gap:8px;cursor:pointer;min-height:32px}
+.h3-tog span{min-width:0}
+.h3-tog .tog{flex:none;font-style:normal;font-size:11px;font-weight:700;color:var(--cyan-d);background:var(--cyan-bg);border:1px solid #a5f3fc;border-radius:99px;padding:3px 10px}
+.item.done.collapsed{opacity:.6}
+.item.done:not(.collapsed){opacity:.85}

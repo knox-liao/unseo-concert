@@ -155,24 +155,28 @@ function dayHTML(di) {
     const isDone = !!done[key], isCur = st.cur === key, isNext = st.next === key;
     const tag = isCur ? `<span class="tag now">進行中</span>` : (isNext ? `<span class="tag next">下一站</span>` : "");
     const delBtn = s._isCustom ? `<button class="del-ev" data-act="delEvent" data-v="${esc(key)}" aria-label="刪除此自訂行程" title="刪除此自訂行程">🗑️</button>` : "";
+    const expMap = store.get("exp", {});
+    const collapsed = isDone && !expMap[key];   // 完成後自動收合，只留 time / title / category
     const customBadge = s._isCustom ? `<span class="custom-badge">自訂</span>` : "";
 
     return `<div class="tl ${idx === list.length - 1 ? "last" : ""}" style="--bar:${c}">
       <div class="tl-rail"><i class="dot ${isDone ? "on" : ""}"></i></div>
-      <article class="card item ${isDone ? "done" : ""} ${isCur ? "cur" : ""}" data-key="${esc(key)}">
+      <article class="card item ${isDone ? "done" : ""} ${collapsed ? "collapsed" : ""} ${isCur ? "cur" : ""}" data-key="${esc(key)}">
         <div class="row">
           <div class="lh"><span class="time">${esc(s.time)}</span><span class="chip">${esc(s.category)}</span>${customBadge}</div>
           <div class="corner">${tag}${delBtn}<button class="ck ${isDone ? "on" : ""}" data-act="done" data-v="${esc(key)}" aria-label="標記完成">✓</button></div>
         </div>
-        <h3>${esc(s.title)}</h3>
-        ${s.transport ? `<div class="tr">${esc(s.transport)}</div>` : ""}
+        ${isDone
+          ? `<h3 class="h3-tog" data-act="itemToggle" data-v="${esc(key)}" role="button" aria-expanded="${!collapsed}"><span>${esc(s.title)}</span><i class="tog">${collapsed ? "▼ 展開" : "▲ 收合"}</i></h3>`
+          : `<h3>${esc(s.title)}</h3>`}
+        ${collapsed ? "" : `${s.transport ? `<div class="tr">${esc(s.transport)}</div>` : ""}
         ${s.notes ? `<div class="nt">💡 ${esc(s.notes)}</div>` : ""}
         ${(() => {
           const pCat = getEventPhraseCat(s);
           if (!pCat) return "";
           return `<div class="ev-phr-bar"><button class="ev-phr-btn" data-act="jumpPhrase" data-v="${esc(pCat)}">🗣️ 實用韓語手指卡・${esc(PHRASE_CAT_MAP[pCat])}</button></div>`;
         })()}
-        ${mapsHTML(s.korean_name)}
+        ${mapsHTML(s.korean_name)}`}
       </article>
     </div>`;
   }).join("");
@@ -661,7 +665,13 @@ document.addEventListener("click", e => {
     case "done": {
       const d = store.get("done", {});
       if (d[v]) delete d[v]; else d[v] = true;
+      const ex = store.get("exp", {}); delete ex[v]; store.set("exp", ex);   // 勾選／取消時回到預設狀態
       store.set("done", d); render(true); break;
+    }
+    case "itemToggle": {
+      const ex = store.get("exp", {});
+      if (ex[v]) delete ex[v]; else ex[v] = true;
+      store.set("exp", ex); render(true); break;
     }
     case "openAdd": openAddModal(); break;
     case "closeAdd": closeAddModal(); break;
