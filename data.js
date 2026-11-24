@@ -11,7 +11,8 @@ const TRIP = {
       day: "Day 1",
       date: "2026-11-26",
       weekday: "週四",
-      theme: "Arrival & Airport Spa Overnight",
+      theme: "抵達仁川・機場汗蒸幕過夜",
+      overview: "搭乘 LJ188 抵達仁川 T2，完成入境與領行李後，在航廈內補給宵夜並入住汗蒸幕。第一晚不進市區，保留完整睡眠時間。",
       hotel: "機場汗蒸幕",
       schedule: [
         {
@@ -60,7 +61,8 @@ const TRIP = {
       day: "Day 2",
       date: "2026-11-27",
       weekday: "週五",
-      theme: "Unseo Slow Shopping & Concert Day 1",
+      theme: "雲西站慢遊採買・第一場演唱會",
+      overview: "上午從機場前往雲西站寄放行李，安排早午餐與輕量採買；下午入住 Sky Top、休息及整理應援物，傍晚前往 INSPIRE Arena。散場後優先搭公演接駁與 AREX，留意 23:42 末班車並準備叫車備案。",
       hotel: "Sky Top（15:00 入住）",
       schedule: [
         {
@@ -157,7 +159,8 @@ const TRIP = {
       day: "Day 3",
       date: "2026-11-28",
       weekday: "週六",
-      theme: "Cafe Relaxation & Concert Day 2",
+      theme: "韓屋咖啡慢活・第二場演唱會",
+      overview: "上午以早午餐及韓屋咖啡廳為主，不安排長距離移動；中午回飯店午睡、洗澡與補電，下午前往場館。散場後回雲西站吃晚餐，再回飯店休息。",
       hotel: "Sky Top",
       schedule: [
         {
@@ -230,7 +233,8 @@ const TRIP = {
       day: "Day 4",
       date: "2026-11-29",
       weekday: "週日",
-      theme: "Final Concert & Unseo Easy Evening",
+      theme: "最後一場演唱會・慶功與行李整理",
+      overview: "睡到自然醒，早午餐後在飯店保留休息時間，再前往 INSPIRE Arena 完成最後一場演唱會。晚上回雲西站慶功、最後採買，回飯店整理行李與退稅單據。",
       hotel: "Sky Top",
       schedule: [
         {
@@ -311,7 +315,8 @@ const TRIP = {
       day: "Day 5",
       date: "2026-11-30",
       weekday: "週一",
-      theme: "Easy Checkout & Return to Taiwan",
+      theme: "悠閒退房・仁川機場返台",
+      overview: "上午早餐與最後檢查，11:00 前退房；午餐後預留緩衝前往雲西站，搭 AREX 至仁川 T2，辦理報到、托運、退稅與安檢，搭 LJ187 返回台中。",
       hotel: "Sky Top（11:00 前退房）",
       schedule: [
         {
@@ -337,6 +342,14 @@ const TRIP = {
           transport: "雲西站周邊步行 10 分鐘內",
           category: "美食",
           notes: "選擇不用排隊的簡單餐廳，避免吃太久或離車站太遠。"
+        },
+        {
+          time: "12:00 - 12:30",
+          title: "返回雲西站與候車緩衝",
+          korean_name: "운서역",
+          transport: "回到雲西站，確認 AREX 方向與班次；預留購票、進站及月台候車時間",
+          category: "交通",
+          notes: "不把午餐時間排得太緊，建議最晚 12:30 左右離開雲西站前往仁川機場 T2。"
         },
         {
           time: "12:30 - 13:00",
@@ -581,18 +594,18 @@ const PHRASES = [
 /* ================= 按天分類的準備清單預設資料 ================= */
 
 const CHECKLIST_TABS = [
-  { key: "pre",     short: "出發前",   title: "✈️ 出發前｜事先準備與行李打包" },
-  { key: "concert", short: "演唱會日", title: "🎤 演唱會日｜11/27・11/28・11/29" },
-  { key: "back",    short: "回國前",   title: "🛫 回國前｜11/29 晚間整理 → 11/30 返台", },
+  { key: "todo",    short: "待辦事項", title: "📝 待辦事項｜出發前線上申辦與設定" },
+  { key: "pack",    short: "行李準備", title: "🧳 行李準備｜出發前打包" },
+  { key: "back",    short: "行李整理", title: "🛫 行李整理｜11/29 晚間整理 → 11/30 返台" },
   { key: "food",    short: "美食清單", title: "🍜 美食清單｜雲西站・機場・演唱會周邊", doneLabel: "已吃過" }
 ];
 
 const CHECKLIST_DATA = {
   /* ───────────── 出發前 ───────────── */
-  pre: [
+  todo: [
     {
       id: "pre_prep",
-      group: "📝 事先準備（線上申辦與設定）",
+      group: "📝 線上申辦與設定",
       items: [
         { id: "pre_a1", text: "出發前 72 小時內線上填寫韓國電子入境卡（e-Arrival Card）並截圖" },
         { id: "pre_a2", text: "確認台灣移民署自動通關（e-Gate）可用" },
@@ -607,6 +620,21 @@ const CHECKLIST_DATA = {
       ]
     },
     {
+      id: "pre_d1_info",
+      group: "🛬 11/26 抵達當晚提醒",
+      info: true,
+      notes: [
+        "抵達仁川 T2 後啟用 eSIM 網路，並辦理自動通關（SeS）。",
+        "出關領行李，到 T2 1 樓 24H Lotteria／CU 買宵夜。",
+        "前往 T2 地下 1 樓西側 SPA at Home 寄放行李並辦理過夜。",
+        "護照及錢包鎖進個人置物櫃。"
+      ]
+    }
+  ],
+
+  /* ───────────── 行李準備 ───────────── */
+  pack: [
+    {
       id: "pre_carry",
       group: "🚫 絕對不能託運（隨身手提行李）",
       items: [
@@ -616,13 +644,14 @@ const CHECKLIST_DATA = {
         { id: "pre_k4", text: "行動電源（機身標示 ≤100Wh，嚴禁託運；機上請勿使用或充電，以航空公司規定為準）" },
         { id: "pre_k5", text: "備用鋰電池（應援手燈電池等裸電池，需個別套袋或貼膠帶）" },
         { id: "pre_k6", text: "手機、耳機、相機等貴重電子設備" },
-        { id: "pre_k7", text: "錢包、信用卡、韓元現金等貴重物品" },
+        { id: "pre_k7", text: "錢包、信用卡、其他貴重物品" },
         { id: "pre_k8", text: "電動刮鬍刀（內建鋰電池，建議手提）" },
         { id: "pre_k9", text: "牙套（含收納盒，貴重易遺失，務必手提）" },
-        { id: "pre_k10", text: "處方藥、個人常備藥與英文藥單" },
+        { id: "pre_k10", text: "個人常備藥（腸胃藥、止痛藥）、處方藥與英文藥單" },
         { id: "pre_k11", text: "易碎品、應援物、隨身會用到的物品" },
-        { id: "pre_k12", text: "提醒：手提液體每瓶 ≤100ml 並裝進 1L 透明夾鏈袋；超過 100ml 的保養品／液體請託運" }
-      ]
+        { id: "pre_k11b", text: "手提液體（每瓶 ≤100ml）裝進 1L 透明夾鏈袋" }
+      ],
+      notes: ["提醒：超過 100ml 的保養品／液體請放託運行李。"]
     },
     {
       id: "pre_cloth",
@@ -640,9 +669,6 @@ const CHECKLIST_DATA = {
       group: "🧴 盥洗保養與常備藥品",
       items: [
         { id: "pre_h1", text: "牙刷牙膏、洗面乳、卸妝、保養及化妝品、護唇膏、護手霜" },
-        { id: "pre_h2", text: "電動刮鬍刀（含充電線／轉接頭，手提）" },
-        { id: "pre_h3", text: "牙套（含收納盒，手提）" },
-        { id: "pre_h4", text: "個人常備藥、腸胃藥、止痛藥（手提）" },
         { id: "pre_h5", text: "喉糖、面紙、濕紙巾" }
       ]
     },
@@ -653,7 +679,7 @@ const CHECKLIST_DATA = {
         { id: "pre_e1", text: "手機充電器、充電線（短線另備一條放外出包）" },
         { id: "pre_e2", text: "韓國 220V 雙圓孔轉接頭" },
         { id: "pre_e3", text: "耳機、備用線（如需要）" },
-        { id: "pre_e4", text: "應援手燈與備用電池（電池手提）" }
+        { id: "pre_e4", text: "應援手燈（備用電池放手提，見上方）" }
       ]
     },
     {
@@ -667,100 +693,44 @@ const CHECKLIST_DATA = {
     },
     {
       id: "pre_d1",
-      group: "🛬 11/26 抵達當晚（機場汗蒸幕過夜）",
+      group: "🛁 11/26 汗蒸幕過夜小袋（要帶）",
       items: [
-        { id: "pre_d1_1", text: "隨身包：護照、機票資訊（LJ188）、手機、錢包、保暖外套" },
-        { id: "pre_d1_2", text: "汗蒸幕過夜小袋：耳塞、眼罩、輕便換洗衣物、盥洗卸妝包、充電線" },
-        { id: "pre_d1_3", text: "抵達仁川 T2 啟用 eSIM 網路並辦理自動通關（SeS）" },
-        { id: "pre_d1_4", text: "出關領行李，到 T2 1 樓 24H Lotteria / CU 買宵夜" },
-        { id: "pre_d1_5", text: "前往 T2 地下 1 樓西側 SPA at Home 寄放行李並辦理過夜" },
-        { id: "pre_d1_6", text: "護照及錢包鎖進個人置物櫃" }
+        { id: "pre_d1_2", text: "耳塞、眼罩" },
+        { id: "pre_d1_3", text: "輕便換洗衣物" },
+        { id: "pre_d1_4", text: "盥洗卸妝保養隨身包" },
+        { id: "pre_d1_5", text: "手機充電線（睡前充電）" }
       ]
     }
   ],
 
-  /* ───────────── 演唱會日 ───────────── */
+  /* ───────────── 演唱會資訊頁：要帶出門的物品（可勾選） ───────────── */
   concert: [
     {
-      id: "con_seat",
-      group: "🎫 場次與座位（INSPIRE Arena）",
+      id: "con_all",
+      group: "🎒 每天都要帶（演唱會＋出門逛逛通用）",
       items: [
-        { id: "con_s1", text: "11/27（五）19:00 開演｜座位 309 A3｜16:30 出發" },
-        { id: "con_s2", text: "11/28（六）17:00 開演｜座位 308 K33｜14:30 出發" },
-        { id: "con_s3", text: "11/29（日）16:00 開演｜座位 311 K1｜13:30 出發" }
+        { id: "con_n2", text: "護照正本（演唱會實名制核對；Olive Young 結帳辦退稅）" },
+        { id: "con_n5", text: "手機（出門前充滿電）" },
+        { id: "con_b2", text: "行動電源與短充電線" },
+        { id: "con_b1", text: "T-money 卡、少量韓元、信用卡" },
+        { id: "con_b5", text: "保暖外套、暖暖包、圍巾" },
+        { id: "con_b6", text: "喉糖、面紙、口罩" },
+        { id: "con_b3", text: "折疊購物袋（Olive Young／樂天超市採買用）" }
       ]
     },
     {
-      id: "con_need",
-      group: "🎤 演唱會所需（三天相同）",
+      id: "con_show",
+      group: "🎤 演唱會專用",
       items: [
         { id: "con_n1", text: "演唱會票券 QR Code／實體票（離線備份）" },
-        { id: "con_n2", text: "護照正本（場館實名制核對身分用）" },
-        { id: "con_n3", text: "應援手燈（確認電量充足）＋備用電池（電池放隨身包）" },
-        { id: "con_n4", text: "確認場館禁帶物與包袋尺寸規定" },
-        { id: "con_n5", text: "手機滿電、行動電源、短充電線" }
-      ]
-    },
-    {
-      id: "con_bag",
-      group: "🛍️ 出門逛逛的包包所需",
-      items: [
-        { id: "con_b1", text: "T-money 卡、少量韓元、信用卡" },
-        { id: "con_b2", text: "行動電源與短充電線" },
-        { id: "con_b3", text: "折疊購物袋（Olive Young／樂天超市採買用）" },
-        { id: "con_b4", text: "護照（Olive Young 結帳主動出示，現場辦理退稅）" },
-        { id: "con_b5", text: "保暖外套、暖暖包、圍巾" },
-        { id: "con_b6", text: "喉糖、面紙、口罩" }
-      ]
-    },
-    {
-      id: "con_t27",
-      group: "📅 11/27（五）行程與交通提醒",
-      items: [
-        { id: "con_a1", text: "早上搭 AREX 至雲西站，先到 Sky Top 飯店免費提前寄放行李" },
-        { id: "con_a2", text: "15:00 入住 Sky Top，午睡 40–60 分鐘並檢查應援物" },
-        { id: "con_a3", text: "留意 AREX 末班車：機場貨物廳舍站 → 雲西站 23:42" },
-        { id: "con_a4", text: "散場回雲西站 1 號出口 Puradak 吃韓式炸雞宵夜（營業至 01:00）" }
-      ]
-    },
-    {
-      id: "con_t28",
-      group: "📅 11/28（六）行程與交通提醒",
-      items: [
-        { id: "con_c1", text: "上午咖啡廳慢活（外出包：手機、錢包、T-money、信用卡、行動電源）" },
-        { id: "con_c2", text: "12:30–14:30 飯店午睡、洗澡、幫手機與行動電源補電" },
-        { id: "con_c3", text: "14:30 出發前往 INSPIRE Arena" },
-        { id: "con_c4", text: "散場回雲西站吃玉大醬（옥된장）大醬鍋晚餐，回飯店幫手燈與手機充電" }
-      ]
-    },
-    {
-      id: "con_t29",
-      group: "📅 11/29（日）行程與交通提醒",
-      items: [
-        { id: "con_d1", text: "最後一場，睡到自然醒，13:30 出發" },
-        { id: "con_d2", text: "Olive Young（營業至 22:30）美妝保養補買，出示護照辦退稅" },
-        { id: "con_d3", text: "樂天超市（營業至 23:00）零食伴手禮採買" },
-        { id: "con_d4", text: "保留所有收據與退稅單據" },
-        { id: "con_d5", text: "散場後去三山會館吃慶功豬肉泡菜鍋，回飯店整理行李（接「回國前」清單）" }
+        { id: "con_n3", text: "應援手燈（確認電量充足）" },
+        { id: "con_n3b", text: "備用電池（放隨身包）" }
       ]
     }
   ],
 
-  /* ───────────── 回國前 ───────────── */
+  /* ───────────── 行李整理（回國前） ───────────── */
   back: [
-    {
-      id: "bk_prep",
-      group: "📝 事先準備（11/29 晚間～11/30 退房前）",
-      items: [
-        { id: "bk_p1", text: "起飛前 24 小時辦理回程真航空（LJ187）線上報到" },
-        { id: "bk_p2", text: "所有退稅單據與護照集中放進隨身包" },
-        { id: "bk_p3", text: "行李初步打包與秤重，確認託運總重未超標" },
-        { id: "bk_p4", text: "睡前幫手機、行動電源、手燈充滿電" },
-        { id: "bk_p5", text: "檢查飯店房間插座、床頭充電線是否全數拔除" },
-        { id: "bk_p6", text: "檢查保險箱、浴室、衣櫃、抽屜無遺漏物品" },
-        { id: "bk_p7", text: "11:00 前完成飯店退房" }
-      ]
-    },
     {
       id: "bk_carry",
       group: "🚫 絕對不能託運（隨身手提行李）",
@@ -775,6 +745,18 @@ const CHECKLIST_DATA = {
       ]
     },
     {
+      id: "bk_prep",
+      group: "📝 事先準備（11/29 晚間～11/30 退房前）",
+      items: [
+        { id: "bk_p1", text: "起飛前 24 小時辦理回程真航空（LJ187）線上報到" },
+        { id: "bk_p3", text: "行李初步打包與秤重，確認託運總重未超標" },
+        { id: "bk_p4", text: "睡前幫手機、行動電源、手燈充滿電" },
+        { id: "bk_p5", text: "檢查飯店房間插座、床頭充電線是否全數拔除" },
+        { id: "bk_p6", text: "檢查保險箱、浴室、衣櫃、抽屜無遺漏物品" },
+        { id: "bk_p7", text: "11:00 前完成飯店退房" }
+      ]
+    },
+    {
       id: "bk_check",
       group: "🧳 託運行李",
       items: [
@@ -785,13 +767,14 @@ const CHECKLIST_DATA = {
     },
     {
       id: "bk_air",
-      group: "🛫 11/30 機場交通與通關退稅",
-      items: [
-        { id: "bk_a1", text: "12:30–13:00 從雲西站搭 AREX 普通列車前往仁川機場 T2（約 11 分鐘）" },
-        { id: "bk_a2", text: "抵達 T2 先掃描／蓋章海關退稅單，再至航空櫃檯托運行李" },
-        { id: "bk_a3", text: "過安檢與自動通關後，至管制區內領取退稅款項並免稅購物" },
-        { id: "bk_a4", text: "登機前切換回台灣門號 SIM 卡" },
-        { id: "bk_a5", text: "搭乘 LJ187 返回台中（17:30 抵達，走 e-Gate 入境）" }
+      group: "🛫 11/30 機場交通與通關退稅（提醒）",
+      info: true,
+      notes: [
+        "12:30–13:00 從雲西站搭 AREX 普通列車前往仁川機場 T2（約 11 分鐘）。",
+        "抵達 T2 先掃描／蓋章海關退稅單，再至航空櫃檯托運行李。",
+        "過安檢與自動通關後，至管制區內領取退稅款項並免稅購物。",
+        "登機前切換回台灣門號 SIM 卡。",
+        "搭乘 LJ187（15:35 起飛）返回台中，17:30 抵達，走 e-Gate 入境。"
       ]
     }
   ],

@@ -194,9 +194,70 @@ function route(title, badge, badgeCls, steps, note) {
   </div>`;
 }
 
+// 場館交通：只列重要資訊（方式／地點／時間／費用）
+function kvCard(title, badge, cls, rows, note) {
+  return `<div class="card route">
+    <div class="rt-h"><b>${title}</b><span class="badge ${cls || ""}">${badge}</span></div>
+    ${rows.map(r => `<div class="kv"><span>${r[0]}</span><span>${r[1]}</span></div>`).join("")}
+    ${note ? `<div class="rnote">${note}</div>` : ""}
+  </div>`;
+}
+function venueTransitHTML() {
+  const seg = store.get("seg", "go") === "back" ? "back" : "go";
+  const segBar = `<div class="seg">
+    <button class="${seg === "go" ? "on" : ""}" data-act="seg" data-v="go">➡️ 場館去程</button>
+    <button class="${seg === "back" ? "on" : ""}" data-act="seg" data-v="back">⬅️ 散場回程</button></div>`;
+  let body;
+  if (seg === "go") {
+    body =
+      `<div class="sub" style="padding:0 4px">雲西站／飯店 → INSPIRE Arena，建議開演前 2.5 小時出發</div>` +
+      kvCard("① 公演專線＋AREX", "免費接駁・最推薦", "rec", [
+        ["AREX", "雲西站往仁川機場方向 1 站，約 4 分鐘、₩1,550"],
+        ["下車", "機場貨物廳舍站（공항화물청사역）2 號出口"],
+        ["接駁車", "公演免費接駁，約 15 分鐘一班，車程約 15 分鐘（僅演唱會日行駛）"]
+      ]) +
+      kvCard("② 常規線渡假村接駁", "免費接駁", "", [
+        ["AREX", "雲西站搭 2 站至仁川機場 T1，約 7 分鐘、₩1,550"],
+        ["乘車處", "T1 1 樓 2C／14C；每 30 分鐘一班（2C :00、:30）"],
+        ["車程", "約 15–20 分鐘"]
+      ]) +
+      kvCard("③ 計程車／叫車（最省時）", "₩17,000–21,000", "pay", [
+        ["叫車", "Kakao T 或 Uber，目的地輸入「인스파이어 아레나」"],
+        ["車程", "約 15–20 分鐘；尖峰塞車約 ₩22,000 內"]
+      ], "💡 可出示「🗣️ 韓文大字卡」或「🆘 獨旅安心卡」給司機看。");
+  } else {
+    body =
+      `<div class="alert"><b>⚠️ 11/27（五）晚場 AREX 末班車</b><br>
+        機場貨物廳舍站 → 雲西站：<b>23:42</b>（往首爾站）／00:00（往數碼媒體城站）<br>
+        仁川機場 T1 → 雲西站：23:38（往首爾站）／23:56（往數碼媒體城站）<br>
+        排隊過長或接近末班，直接叫 Kakao T／Uber。</div>` +
+      kvCard("① 公演接駁＋AREX（首選）", "免費接駁・最省力", "rec", [
+        ["接駁車", "散場後依指標到專用乘車處，搭至機場貨物廳舍站；持續發車至約 23:30"],
+        ["AREX", "往首爾站方向 1 站到雲西站，約 4 分鐘"]
+      ]) +
+      kvCard("② 備用：常規接駁", "免費接駁", "", [
+        ["至 T2", "末班 23:00（每小時 :00、:30）"],
+        ["至 T1", "末班 22:15（每小時 :15、:45）"],
+        ["之後", "轉搭 AREX 回雲西站，注意 AREX 末班"]
+      ]) +
+      kvCard("③ 叫車回飯店（獨旅夜間最安心）", "₩18,000–23,000", "pay", [
+        ["叫車", "Kakao T 或 Uber（有完整行車軌跡紀錄）"],
+        ["集合點", "散場前 10 分鐘先走到渡假村主大廳（Main Lobby）外圍，現場計程車排隊人潮極多"],
+        ["車程", "約 15–20 分鐘"]
+      ], "💡 可至「🆘 獨旅安心卡」出示飯店韓文大字卡。");
+  }
+  return segBar + body;
+}
+
+const TRANSIT_SUBS = [{ key: "air", label: "✈️ 航班與機場移動" }, { key: "venue", label: "🎤 演唱會場館交通" }];
+function tsubGet() { const t = store.get("tsub", "air"); return t === "venue" ? "venue" : "air"; }
+
 function transitHTML() {
-  return `
-  <div class="card"><h2 class="h2">✈️ 航班資訊</h2>
+  return tsubGet() === "venue" ? venueTransitHTML() : airTransitHTML();
+}
+
+function airTransitHTML() {
+  return `<div class="card"><h2 class="h2">✈️ 航班資訊</h2>
     <div class="kv"><span>去程 LJ188</span><span>11/26 18:30 台中 T1 → 22:15 仁川 T2</span></div>
     <div class="kv"><span>回程 LJ187</span><span>11/30 15:35 仁川 T2 → 17:30 台中 T1</span></div>
     <div class="kv"><span>時區</span><span>韓國比台灣快 1 小時</span></div>
@@ -228,69 +289,24 @@ function transitHTML() {
 
 /* ================= 🎤 演唱會資訊頁（場次、專屬接駁、散場末班車與注意事項） ================= */
 function concertHTML() {
-  const seg = store.get("seg", "go") === "back" ? "back" : "go";
-  const lastTrain = `<div class="alert"><b>⚠️ 11/27（五）晚場 AREX 末班車</b><br>
-    機場貨物廳舍站 → 雲西站：<b>23:42</b>（往首爾站）／00:00（往數碼媒體城站）<br>
-    仁川機場 T1 → 雲西站：23:38（往首爾站）／23:56（往數碼媒體城站）<br>
-    排隊過長或接近末班，直接叫 Kakao T／Uber。</div>`;
   const sessions = `<div class="card"><h2 class="h2">🎫 演唱會場次與位置（INSPIRE Arena 인스파이어 아레나）</h2>
     <table class="tbl"><tr><th>日期</th><th>開演</th><th>位置</th><th>出發</th><th>預估散場</th></tr>
       <tr><td>11/27 五</td><td><b>19:00</b></td><td><span class="seat-chip">309 A3</span></td><td>16:30</td><td>21:30–22:00<br><span class="sub">緊湊，留意末班</span></td></tr>
       <tr><td>11/28 六</td><td><b>17:00</b></td><td><span class="seat-chip">308 K33</span></td><td>14:30</td><td>19:30–20:00<br><span class="sub">充裕</span></td></tr>
       <tr><td>11/29 日</td><td><b>16:00</b></td><td><span class="seat-chip">311 K1</span></td><td>13:30</td><td>18:30–19:00<br><span class="sub">極充裕</span></td></tr></table></div>`;
-  const segBar = `<div class="seg">
-    <button class="${seg === "go" ? "on" : ""}" data-act="seg" data-v="go">➡️ 場館去程</button>
-    <button class="${seg === "back" ? "on" : ""}" data-act="seg" data-v="back">⬅️ 散場回程</button></div>`;
-  let body = "";
-  if (seg === "go") {
-    body =
-      `<div class="sub" style="padding:0 4px">飯店（雲西站）→ INSPIRE Arena，建議開演前 2.5 小時出發</div>` +
-      route("① 公演專線＋AREX", "免費接駁・最推薦", "rec", [
-        ["🏨", "從 Sky Top 飯店步行到雲西站", "約 8 分鐘（約 600 公尺）"],
-        ["🚇", "雲西站搭 AREX 往仁川機場方向 1 站", "車程約 4 分鐘，約 ₩1,550"],
-        ["📍", "機場貨物廳舍站（공항화물청사역）2 號出口", "出站後找公演接駁乘車處"],
-        ["🚌", "轉乘 INSPIRE 公演免費接駁車", "約 15 分鐘一班（尖峰加密），車程約 15 分鐘；僅限演唱會日行駛"],
-        ["🎤", "抵達 INSPIRE Arena", "領票、拍照、排隊進場"]
-      ]) +
-      route("② 常規線渡假村接駁", "免費接駁", "", [
-        ["🚇", "雲西站搭 AREX 2 站至仁川機場 T1", "車程約 7 分鐘，約 ₩1,550"],
-        ["📍", "T1 1 樓 2C／14C 乘車處", "11/1 起每日每 30 分鐘一班，T1 2C 每小時 :00、:30 發車"],
-        ["🚌", "渡假村免費接駁車", "車程約 15–20 分鐘"],
-        ["🎤", "抵達 INSPIRE Arena", ""]
-      ]) +
-      route("③ 計程車／叫車（最省時）", "₩17,000–21,000", "pay", [
-        ["🏨", "飯店門口打開 Kakao T 或 Uber 叫車", "可直接輸入「인스파이어 아레나」"],
-        ["🚕", "直達場館，約 15–20 分鐘", "遇尖峰塞車約 ₩22,000 內"],
-        ["🎤", "抵達 INSPIRE Arena", ""]
-      ], "💡 到場後可點開「🗣️ 韓文大字卡」或用「🆘 獨旅安心卡」秀給司機看。");
-  } else {
-    body =
-      lastTrain +
-      route("① 公演接駁＋AREX（首選）", "免費接駁・最省力", "rec", [
-        ["🎤", "散場後依指標到 Arena 專用接駁乘車處", ""],
-        ["🚌", "搭免費接駁至機場貨物廳舍站（공항화물청사역）", "演出結束後持續發車至約 23:30"],
-        ["🚇", "AREX 往首爾站方向 1 站到雲西站", "車程約 4 分鐘"],
-        ["🏨", "步行約 8 分鐘回 Sky Top 飯店", ""]
-      ]) +
-      route("② 備用：常規接駁至 T2／T1", "免費接駁", "", [
-        ["🚌", "公演專線排隊過長時，改搭渡假村常規接駁", ""],
-        ["📍", "至仁川機場 T2：末班 23:00（每小時 :00、:30）", "或至 T1：末班 22:15（每小時 :15、:45）"],
-        ["🚇", "轉搭 AREX 回雲西站", "注意 AREX 末班車時間"],
-        ["🏨", "步行回飯店", ""]
-      ]) +
-      route("③ 叫車回飯店（獨旅夜間最安心）", "₩18,000–23,000", "pay", [
-        ["🚶", "散場前 10 分鐘先走到渡假村主大廳（Main Lobby）外圍", "現場計程車排隊人潮極多"],
-        ["📱", "用 Kakao T 或 Uber 叫車", "App 叫車有完整行車軌跡紀錄"],
-        ["🚕", "車程約 15–20 分鐘回 Sky Top 飯店", "可至「🆘 獨旅安心卡」出示飯店韓文大字卡"]
-      ]);
-  }
+  const daily = `<div class="card"><h2 class="h2">📅 各場當日提醒</h2>
+    <ul class="tips">
+      <li><b>11/27（五）</b>：早上搭 AREX 到雲西站，先到 Sky Top 免費寄放行李；15:00 入住後午睡 40–60 分鐘並檢查應援物；散場後可到雲西站 1 號出口 Puradak 吃炸雞宵夜（營業至 01:00）。</li>
+      <li><b>11/28（六）</b>：上午咖啡廳慢活；12:30–14:30 回飯店午睡、洗澡，並幫手機與行動電源補電；14:30 出發；散場後去玉大醬吃大醬鍋，回飯店幫手燈與手機充電。</li>
+      <li><b>11/29（日）</b>：最後一場，可睡到自然醒；Olive Young（營業至 22:30）與樂天超市（營業至 23:00）做最後採買，保留所有收據與退稅單據；散場後去三山會館吃慶功餐，再整理行李（接「🎒 清單 → 行李整理」）。</li>
+    </ul></div>`;
+  const carry = `<div class="ck-wrap">${checklistHTML("concert")}</div>`;
   const tips = `<div class="card"><h2 class="h2">💡 演唱會交通與入場口訣</h2>
     <ul class="tips">
-      <li><b>入場必備</b>：護照正本（實名制核對）、票券 QR Code／實體票離線截圖、應援手燈與備用電池。</li>
-      <li><b>去程動線</b>：雲西站 → <b>機場貨物廳舍站 1 站</b>（2 號出口）→ 搭乘公演免費接駁車。</li>
-      <li><b>11/27 晚場留意末班</b>：機場貨物廳舍站往雲西站末班車為 <b>23:42</b>，散場人潮過多建議直接叫車。</li>
+      <li><b>入場前確認</b>：場館禁帶物與包袋尺寸規定（以官方公告為準）。</li>
+      <li><b>場館交通</b>：去程／散場回程與末班車資訊，請看「🚌 交通接駁」。</li>
     </ul></div>`;
-  return sessions + segBar + body + tips;
+  return sessions + carry + daily + tips;
 }
 
 /* ================= 🆘 獨旅安心卡（純緊急聯絡、飯店地址卡、手指書、退稅） ================= */
@@ -386,12 +402,12 @@ function ckState() {
   };
 }
 function ckGetTab() {
-  const t = store.get(CKK.tab, "pre");
-  return CK_TAB_KEYS.indexOf(t) >= 0 ? t : "pre";
+  const t = store.get(CKK.tab, CK_TAB_KEYS[0]);
+  return CK_TAB_KEYS.indexOf(t) >= 0 ? t : CK_TAB_KEYS[0];
 }
 // 某類別目前「看得到」的項目：預設項目（排除已刪除、套用改名）＋自訂項目
 function ckVisibleItems(g, st) {
-  const base = g.items.filter(i => !st.del[i.id]).map(i => ({
+  const base = (g.items || []).filter(i => !st.del[i.id]).map(i => ({
     id: i.id, text: st.edits[i.id] != null ? st.edits[i.id] : i.text, custom: false, kr: i.kr || "", note: i.note || ""
   }));
   const cus = (st.custom[g.id] || []).map(c => ({ id: c.id, text: c.text, custom: true }));
@@ -405,10 +421,14 @@ function ckTabStats(key, st) {
   return { total, done };
 }
 
-function checklistHTML() {
+// 目前操作的清單 key：演唱會資訊頁內嵌清單固定為 concert，其餘為清單分頁目前的分頁
+function ckCurKey() { return tab === "concert" ? "concert" : ckGetTab(); }
+const CONCERT_CK_META = { title: "🎒 要帶出門的物品（可勾選）", doneLabel: "已備妥" };
+
+function checklistHTML(forceKey) {
   const st = ckState();
-  const key = ckGetTab();
-  const meta = CHECKLIST_TABS.find(t => t.key === key) || CHECKLIST_TABS[0];
+  const key = forceKey || ckGetTab();
+  const meta = forceKey ? CONCERT_CK_META : (CHECKLIST_TABS.find(t => t.key === key) || CHECKLIST_TABS[0]);
   const { total, done } = ckTabStats(key, st);
   const pct = total ? Math.round(done / total * 100) : 0;
 
@@ -446,7 +466,11 @@ function checklistHTML() {
     </div>${extra}</div>`;
   };
 
+  const noteHTML = g => (g.notes || []).map(n => `<div class="ck-info">${esc(n)}</div>`).join("");
   const groups = CHECKLIST_DATA[key].map(g => {
+    if (g.info) {   // 純文字提醒群組：不勾選、不編輯
+      return `<div class="group"><div class="group-h"><h3>${esc(g.group)}</h3></div><div class="group-b">${noteHTML(g)}</div></div>`;
+    }
     const o = st.open[g.id] !== false;
     const items = ckVisibleItems(g, st);
     const gDone = items.filter(i => st.checked[i.id]).length;
@@ -464,7 +488,7 @@ function checklistHTML() {
         <h3>${esc(g.group)} <small class="gcount">${gDone}/${items.length}</small></h3>
         <span>${o ? "▲ 收合" : "▼ 展開"}</span>
       </div>
-      ${o ? `<div class="group-b">${body}${add}</div>` : ""}
+      ${o ? `<div class="group-b">${body}${add}${noteHTML(g)}</div>` : ""}
     </div>`;
   }).join("");
 
@@ -584,12 +608,15 @@ function render(keepScroll) {
   const y = window.scrollY;
   BIGS.length = 0;
   ["itinerary", "transit", "checklist", "safety", "concert"].forEach(t => $("#nav-" + t).className = "nav-btn" + (tab === t ? " active" : ""));
-  const showSubNav = (tab === "itinerary" || tab === "checklist");
+  const showSubNav = (tab === "itinerary" || tab === "checklist" || tab === "transit");
   $("#daynavWrap").classList.toggle("hidden", !showSubNav);
   if (tab === "itinerary") {
     $("#daynav").innerHTML = TRIP.days.map((d, i) => `<button class="day-btn ${i === day ? "active" : ""}" data-act="day" data-v="${i}">${d.date.slice(5).replace("-", "/")}</button>`).join("");
     const a = document.querySelector(".day-btn.active");
     if (a) a.scrollIntoView({ inline: "center", block: "nearest" });
+  } else if (tab === "transit") {
+    const cur = tsubGet();
+    $("#daynav").innerHTML = TRANSIT_SUBS.map(t => `<button class="day-btn ck-sub ${t.key === cur ? "active" : ""}" data-act="tsub" data-v="${t.key}"><span>${t.label}</span></button>`).join("");
   } else if (tab === "checklist") {
     const st = ckState();
     const curKey = ckGetTab();
@@ -745,14 +772,14 @@ document.addEventListener("click", e => {
     }
     case "ckExpand": case "ckCollapse": {
       const o = store.get(CKK.open, {});
-      CHECKLIST_DATA[ckGetTab()].forEach(g => { o[g.id] = (a === "ckExpand"); });
+      CHECKLIST_DATA[ckCurKey()].forEach(g => { if (!g.info) o[g.id] = (a === "ckExpand"); });
       store.set(CKK.open, o); render(true); break;
     }
     case "ckHide": store.set(CKK.hide, !store.get(CKK.hide, false)); render(true); break;
     case "ckReset": {
       if (!confirm("清空本頁所有勾選？（不會刪除或修改任何項目）")) break;
       const k = store.get(CKK.checked, {});
-      ckAllIds(ckGetTab()).forEach(id => delete k[id]);
+      ckAllIds(ckCurKey()).forEach(id => delete k[id]);
       store.set(CKK.checked, k); render(true); break;
     }
     case "ckAdd": ckAdd(t.dataset.cat); break;
@@ -760,8 +787,8 @@ document.addEventListener("click", e => {
     case "ckSave": ckSaveEdit(v); break;
     case "ckCancel": ckEditing = null; render(true); break;
     case "ckDel": ckDelete(v); break;
+    case "tsub": store.set("tsub", v); render(false); window.scrollTo({ top: 0 }); break;
     case "fx": openFx(true); break;
-    case "hardRefresh": hardRefresh(); break;
   }
 });
 
@@ -874,6 +901,9 @@ function openFx(o) {
     if (tab === "itinerary") {
       const n = day + dir;
       if (n >= 0 && n < TRIP.days.length) { day = n; store.set("day", day); moved = true; }
+    } else if (tab === "transit") {
+      const ks = TRANSIT_SUBS.map(t => t.key), n = ks.indexOf(tsubGet()) + dir;
+      if (n >= 0 && n < ks.length) { store.set("tsub", ks[n]); moved = true; }
     } else if (tab === "checklist") {
       const i = CK_TAB_KEYS.indexOf(ckGetTab()), n = i + dir;
       if (i >= 0 && n >= 0 && n < CK_TAB_KEYS.length) {
@@ -889,16 +919,6 @@ function openFx(o) {
   }, { passive: true });
   el.addEventListener("touchcancel", () => { ok = false; }, { passive: true });
 })();
-
-/* ================= 強制更新（清除快取並重新載入） ================= */
-async function hardRefresh() {
-  if (!confirm("清除快取並重新載入最新版？（勾選與自訂資料會保留）")) return;
-  try {
-    if ("serviceWorker" in navigator) { const rs = await navigator.serviceWorker.getRegistrations(); await Promise.all(rs.map(r => r.unregister())); }
-    if (window.caches) { const ks = await caches.keys(); await Promise.all(ks.map(k => caches.delete(k))); }
-  } catch (e) {}
-  location.href = location.pathname + "?r=" + Date.now();
-}
 
 /* ================= 離線 Service Worker 註冊 ================= */
 if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {

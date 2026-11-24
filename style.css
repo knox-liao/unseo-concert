@@ -304,5 +304,14 @@ main{max-width:480px;margin:0 auto;padding:14px;position:relative;z-index:10}
 .item.done.collapsed{opacity:.6}
 .item.done:not(.collapsed){opacity:.85}
 
-.appver{max-width:480px;margin:0 auto;padding:0 14px 16px;text-align:center;font-size:11px;color:var(--muted);position:relative;z-index:10}
-.appver button{border:1px solid #a5f3fc;background:#fff;color:var(--cyan-d);border-radius:99px;min-height:36px;padding:0 14px;font-size:12px;font-weight:700;font-family:inherit;cursor:pointer}
+
+/* 純文字提醒（不勾選） */
+.ck-info{font-size:13px;line-height:1.55;color:#334155;padding:6px 4px 6px 18px;position:relative}
+.ck-info::before{content:"•";position:absolute;left:4px;color:var(--cyan-d);font-weight:700}
+.group-b .ck-info:first-child{padding-top:2px}
+.ck-wrap{display:flex;flex-direction:column;gap:12px}
+
+/* 交通接駁：區塊標題 */
+.sec-h{margin:6px 2px 0;padding:8px 14px;font-size:14px;font-weight:700;color:#fff;background:#0e7490;border-radius:12px}
+.route .kv span:first-child{flex:none;min-width:56px;color:var(--muted)}
+.route .kv span:last-child{text-align:right}
