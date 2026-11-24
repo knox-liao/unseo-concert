@@ -303,3 +303,6 @@ main{max-width:480px;margin:0 auto;padding:14px;position:relative;z-index:10}
 .h3-tog .tog{flex:none;font-style:normal;font-size:11px;font-weight:700;color:var(--cyan-d);background:var(--cyan-bg);border:1px solid #a5f3fc;border-radius:99px;padding:3px 10px}
 .item.done.collapsed{opacity:.6}
 .item.done:not(.collapsed){opacity:.85}
+
+.appver{max-width:480px;margin:0 auto;padding:0 14px 16px;text-align:center;font-size:11px;color:var(--muted);position:relative;z-index:10}
+.appver button{border:1px solid #a5f3fc;background:#fff;color:var(--cyan-d);border-radius:99px;min-height:36px;padding:0 14px;font-size:12px;font-weight:700;font-family:inherit;cursor:pointer}

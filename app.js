@@ -761,6 +761,7 @@ document.addEventListener("click", e => {
     case "ckCancel": ckEditing = null; render(true); break;
     case "ckDel": ckDelete(v); break;
     case "fx": openFx(true); break;
+    case "hardRefresh": hardRefresh(); break;
   }
 });
 
@@ -889,9 +890,26 @@ function openFx(o) {
   el.addEventListener("touchcancel", () => { ok = false; }, { passive: true });
 })();
 
+/* ================= 強制更新（清除快取並重新載入） ================= */
+async function hardRefresh() {
+  if (!confirm("清除快取並重新載入最新版？（勾選與自訂資料會保留）")) return;
+  try {
+    if ("serviceWorker" in navigator) { const rs = await navigator.serviceWorker.getRegistrations(); await Promise.all(rs.map(r => r.unregister())); }
+    if (window.caches) { const ks = await caches.keys(); await Promise.all(ks.map(k => caches.delete(k))); }
+  } catch (e) {}
+  location.href = location.pathname + "?r=" + Date.now();
+}
+
 /* ================= 離線 Service Worker 註冊 ================= */
 if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
-  navigator.serviceWorker.register("./sw.js").then(reg => {
+  // 新版 SW 接手後自動重新載入一次，避免手機停在舊版畫面
+  const hadCtl = !!navigator.serviceWorker.controller;
+  let reloaded = false;
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    if (!hadCtl || reloaded) return;
+    reloaded = true; location.reload();
+  });
+  navigator.serviceWorker.register("./sw.js", { updateViaCache: "none" }).then(reg => {
     reg.update().catch(() => {});
     document.addEventListener("visibilitychange", () => { if (!document.hidden) reg.update().catch(() => {}); });
   }).catch(() => {});
