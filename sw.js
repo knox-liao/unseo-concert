@@ -1,8 +1,8 @@
 // 仁川演唱會慢旅 Service Worker
 // 每次更新任何檔案後，請把下面版本號 +1（例如 v3 → v4），手機才會抓到新版。
-const CACHE_NAME = "incheon-trip-v19";
+const CACHE_NAME = "incheon-trip-v21";
 const CORE = ["./", "./index.html", "./style.css", "./data.js", "./app.js"];
-const OPTIONAL = ["./manifest.webmanifest", "./icon-192.png", "./icon-512.png", "./apple-touch-icon.png"];
+const OPTIONAL = ["./manifest.webmanifest", "./icon-192.png", "./icon-512.png", "./icon-maskable-512.png", "./apple-touch-icon.png"];
 const TIMEOUT = 4000;
 
 self.addEventListener("install", event => {
